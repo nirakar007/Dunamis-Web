@@ -1,5 +1,7 @@
 import { Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import TermsModal from "./TermsModal";
 
 // Password strength calculation function
 const calculatePasswordStrength = (password) => {
@@ -112,121 +114,136 @@ const LoginPage = ({
   setShowRoleDropdown,
   setCurrentPage,
   roles,
-}) => (
-  <div className="min-h-screen bg-gray-50 flex items-start justify-center px-4 pt-16">
-    <div className="max-w-6xl w-full flex items-center justify-center gap-12">
-      {/* Illustration Section */}
-      <div className="hidden lg:flex flex-1 justify-center items-center">
-        <div className="relative">
-          <div className="w-80 h-80 bg-blue-200 rounded-full relative overflow-hidden">
-            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-2 h-32 bg-gray-800"></div>
-            <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 w-1 h-16 bg-gray-800 rotate-45 origin-bottom"></div>
-            <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 w-1 h-16 bg-gray-800 -rotate-45 origin-bottom"></div>
+  navigate,
+}) => {
+  const handleLogin = () => {
+    // Add your login logic here (validation, API call, etc.)
+    // For now, we'll navigate based on the selected role
+    if (formData.role === "Teacher") {
+      navigate("/teacher/dashboard");
+    } else if (formData.role === "Admin") {
+      navigate("/admin/dashboard");
+    }
+  };
 
-            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-              <div className="w-8 h-8 bg-pink-300 rounded-full mx-auto mb-1"></div>
-              <div className="w-12 h-16 bg-blue-400 rounded-lg mx-auto"></div>
-              <div className="absolute top-8 -left-3 w-8 h-2 bg-pink-300 rounded-full rotate-45"></div>
-              <div className="absolute top-8 -right-3 w-8 h-2 bg-pink-300 rounded-full -rotate-45"></div>
-              <div className="flex justify-center gap-1 mt-1">
-                <div className="w-3 h-12 bg-gray-300 rounded-full"></div>
-                <div className="w-3 h-12 bg-gray-300 rounded-full"></div>
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-start justify-center px-4 pt-16">
+      <div className="max-w-6xl w-full flex items-center justify-center gap-12">
+        {/* Illustration Section */}
+        <div className="hidden lg:flex flex-1 justify-center items-center">
+          <div className="relative">
+            <div className="w-80 h-80 bg-blue-200 rounded-full relative overflow-hidden">
+              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-2 h-32 bg-gray-800"></div>
+              <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 w-1 h-16 bg-gray-800 rotate-45 origin-bottom"></div>
+              <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 w-1 h-16 bg-gray-800 -rotate-45 origin-bottom"></div>
+
+              <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+                <div className="w-8 h-8 bg-pink-300 rounded-full mx-auto mb-1"></div>
+                <div className="w-12 h-16 bg-blue-400 rounded-lg mx-auto"></div>
+                <div className="absolute top-8 -left-3 w-8 h-2 bg-pink-300 rounded-full rotate-45"></div>
+                <div className="absolute top-8 -right-3 w-8 h-2 bg-pink-300 rounded-full -rotate-45"></div>
+                <div className="flex justify-center gap-1 mt-1">
+                  <div className="w-3 h-12 bg-gray-300 rounded-full"></div>
+                  <div className="w-3 h-12 bg-gray-300 rounded-full"></div>
+                </div>
               </div>
-            </div>
 
-            <div className="absolute top-16 right-16 w-2 h-2 bg-blue-500 rounded-full"></div>
-            <div className="absolute top-24 right-8 w-1 h-1 bg-blue-600 rounded-full"></div>
-            <div className="absolute bottom-20 right-20 w-2 h-2 bg-blue-500 rounded-full"></div>
-            <div className="absolute bottom-16 left-8 w-1 h-1 bg-blue-600 rounded-full"></div>
+              <div className="absolute top-16 right-16 w-2 h-2 bg-blue-500 rounded-full"></div>
+              <div className="absolute top-24 right-8 w-1 h-1 bg-blue-600 rounded-full"></div>
+              <div className="absolute bottom-20 right-20 w-2 h-2 bg-blue-500 rounded-full"></div>
+              <div className="absolute bottom-16 left-8 w-1 h-1 bg-blue-600 rounded-full"></div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Login Form Section */}
-      <div className="flex-1 max-w-md">
-        <div className="bg-white rounded-lg shadow-sm p-8">
-          <div className="text-start mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-8">
-              Welcome Back!
-            </h1>
-            <RoleDropdown
-              selectedRole={formData.role}
-              onRoleSelect={handleRoleSelect}
-              showDropdown={showRoleDropdown}
-              setShowDropdown={setShowRoleDropdown}
-              roles={roles}
-            />
-          </div>
-
-          <div className="space-y-6">
-            <div>
-              <input
-                type="email"
-                name="email"
-                placeholder="Enter email..."
-                value={formData.email}
-                onChange={handleInputChange}
-                className="w-full px-0 py-3 border-0 border-b-2 border-gray-200 focus:border-cyan-500 focus:outline-none placeholder-gray-400 bg-transparent"
+        {/* Login Form Section */}
+        <div className="flex-1 max-w-md">
+          <div className="bg-white rounded-lg shadow-sm p-8">
+            <div className="text-start mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-8">
+                Welcome Back!
+              </h1>
+              <RoleDropdown
+                selectedRole={formData.role}
+                onRoleSelect={handleRoleSelect}
+                showDropdown={showRoleDropdown}
+                setShowDropdown={setShowRoleDropdown}
+                roles={roles}
               />
             </div>
 
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                placeholder="Enter password..."
-                value={formData.password}
-                onChange={handleInputChange}
-                className="w-full px-0 py-3 pr-10 border-0 border-b-2 border-gray-200 focus:border-cyan-500 focus:outline-none placeholder-gray-400 bg-transparent"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
+            <div className="space-y-6">
+              <div>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Enter email..."
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="w-full px-0 py-3 border-0 border-b-2 border-gray-200 focus:border-cyan-500 focus:outline-none placeholder-gray-400 bg-transparent"
+                />
+              </div>
 
-            <div className="flex items-center space-x-20">
-              <button
-                type="button"
-                className="w-1/2 bg-gray-900 text-white py-4 rounded-lg font-medium hover:bg-gray-700 transition-colors"
-              >
-                Login
-              </button>
-
-              <div className="w-1/2">
-                <span className="text-gray-600">Not a user? </span>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Enter password..."
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  className="w-full px-0 py-3 pr-10 border-0 border-b-2 border-gray-200 focus:border-cyan-500 focus:outline-none placeholder-gray-400 bg-transparent"
+                />
                 <button
                   type="button"
-                  onClick={() => setCurrentPage("signup")}
-                  className="text-cyan-600 hover:text-cyan-500 hover:underline underline-offset-2 font-medium"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
-                  Sign up
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
-            </div>
 
-            <div className="flex flex-col items-start text-gray-600 text-sm">
-              or Login with
-              <div className="flex justify-center pt-2">
+              <div className="flex items-center space-x-20">
                 <button
                   type="button"
-                  className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50"
+                  className="w-1/2 bg-gray-900 text-white py-4 rounded-lg font-medium hover:bg-gray-700 transition-colors"
+                  onClick={handleLogin}
                 >
-                  <div className="w-5 h-5 bg-red-500 rounded flex items-center justify-center text-white text-xs font-bold">
-                    G
-                  </div>
+                  Login
                 </button>
+
+                <div className="w-1/2">
+                  <span className="text-gray-600">Not a user? </span>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage("signup")}
+                    className="text-cyan-600 hover:text-cyan-500 hover:underline underline-offset-2 font-medium"
+                  >
+                    Sign up
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-col items-start text-gray-600 text-sm">
+                or Login with
+                <div className="flex justify-center pt-2">
+                  <button
+                    type="button"
+                    className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50"
+                  >
+                    <img
+                      src="src\assets\images\google-icon.svg"
+                      alt="google-icon"
+                    />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Signup Page Component
 const SignupPage = ({
@@ -241,15 +258,30 @@ const SignupPage = ({
   setShowRoleDropdown,
   setCurrentPage,
   roles,
+  navigate,
 }) => {
   const passwordStrength = calculatePasswordStrength(formData.password);
   const passwordMatch = checkPasswordMatch(
     formData.password,
     formData.confirmPassword
   );
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleSignup = () => {
+    // Add your signup logic here (validation, API call, etc.)
+    // For now, we'll navigate to login page after successful signup
+    // You might want to navigate to dashboard or verification page instead
+    navigate("/login");
+    // Or navigate based on role:
+    // if (formData.role === "Teacher") {
+    //   navigate("/teacher/dashboard");
+    // } else if (formData.role === "Admin") {
+    //   navigate("/admin/dashboard");
+    // }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gray-50 flex items-start justify-center px-4 pt-2">
       <div className="max-w-6xl w-full flex items-center justify-center gap-12">
         {/* Illustration Section */}
         <div className="hidden lg:flex flex-1 justify-center items-center">
@@ -288,13 +320,13 @@ const SignupPage = ({
         {/* Signup Form Section */}
         <div className="flex-1 max-w-md">
           <div className="bg-white rounded-lg shadow-sm p-8">
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            <div className="text-start mb-8">
+              <h1 className="text-4xl font-bold text-gray-900 mb-8">
                 Get Started with Us!
               </h1>
 
-              <div className="mb-6">
-                <label className="block text-left text-gray-600 text-sm mb-2">
+              <div className="flex items-center justify-between">
+                <label className="block text-left text-gray-600 text-2xl py-1">
                   Select role
                 </label>
                 <div className="flex justify-start">
@@ -309,7 +341,7 @@ const SignupPage = ({
               </div>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-8">
               <div>
                 <input
                   type="email"
@@ -321,7 +353,7 @@ const SignupPage = ({
                 />
               </div>
 
-              <div className="relative">
+              <div className="relative space-y-1">
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password"
@@ -333,7 +365,7 @@ const SignupPage = ({
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-0 top-3 text-gray-400 hover:text-gray-600"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -367,9 +399,9 @@ const SignupPage = ({
                   </div>
                 )}
 
-                <p className="text-xs text-gray-500 mt-2">
-                  The password must contain at least a capital letter, a special
-                  symbol and numerics
+                <p className="text-xs text-gray-400 mt-2">
+                  Password must contain at least: a capital letter, a special
+                  symbol (!@#$%^&*), and numbers
                 </p>
               </div>
 
@@ -385,7 +417,7 @@ const SignupPage = ({
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-0 top-3 text-gray-400 hover:text-gray-600"
                 >
                   {showConfirmPassword ? (
                     <EyeOff size={20} />
@@ -422,14 +454,26 @@ const SignupPage = ({
                 )}
               </div>
 
-              <div className="text-xs text-gray-500">
-                By pressing "Sign up" I agree to all the terms and conditions
+              <div className="flex space-x-1 text-xs text-gray-500">
+                <p>By pressing "Sign up" I agree to all</p>
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="underline text-blue-900"
+                >
+                  the terms and conditions
+                </button>
               </div>
+
+              <TermsModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+              />
 
               <div className="flex items-center gap-4">
                 <button
                   type="button"
                   className="bg-gray-800 text-white py-3 px-8 rounded-lg font-medium hover:bg-gray-700 transition-colors"
+                  onClick={handleSignup}
                 >
                   Sign Up
                 </button>
@@ -441,35 +485,20 @@ const SignupPage = ({
                     type="button"
                     className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50"
                   >
-                    <div className="w-5 h-5 bg-red-500 rounded flex items-center justify-center text-white text-xs font-bold">
-                      G
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50"
-                  >
-                    <div className="w-5 h-5 bg-blue-600 rounded flex items-center justify-center text-white text-xs font-bold">
-                      f
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50"
-                  >
-                    <div className="w-5 h-5 bg-black rounded flex items-center justify-center text-white text-xs">
-                      🍎
-                    </div>
+                    <img
+                      src="src\assets\images\google-icon.svg"
+                      alt="google-icon"
+                    />
                   </button>
                 </div>
               </div>
 
-              <div className="text-center">
+              <div className="text-start">
                 <span className="text-gray-600">Already a user? </span>
                 <button
                   type="button"
                   onClick={() => setCurrentPage("login")}
-                  className="text-blue-600 hover:text-blue-700 font-medium"
+                  className="text-cyan-600 hover:text-cyan-500 font-medium"
                 >
                   Sign in
                 </button>
@@ -484,6 +513,7 @@ const SignupPage = ({
 
 // Main AuthPages Component
 const AuthPages = () => {
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState("signup");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -524,13 +554,13 @@ const AuthPages = () => {
 
   return (
     <div>
-      <div className="fixed top-4 left-4 z-50 bg-white rounded-lg shadow-lg p-2">
+      <div className="fixed top-30 left-4 z-50 bg-white rounded-lg shadow-lg p-2">
         <div className="flex gap-2">
           <button
             onClick={() => setCurrentPage("login")}
             className={`px-4 py-2 rounded ${
               currentPage === "login"
-                ? "bg-blue-600 text-white"
+                ? "bg-gray-900 text-white"
                 : "bg-gray-100 text-gray-700"
             }`}
           >
@@ -540,7 +570,7 @@ const AuthPages = () => {
             onClick={() => setCurrentPage("signup")}
             className={`px-4 py-2 rounded ${
               currentPage === "signup"
-                ? "bg-blue-600 text-white"
+                ? "bg-gray-900 text-white"
                 : "bg-gray-100 text-gray-700"
             }`}
           >
@@ -560,6 +590,7 @@ const AuthPages = () => {
           setShowRoleDropdown={setShowRoleDropdown}
           setCurrentPage={setCurrentPage}
           roles={roles}
+          navigate={navigate}
         />
       ) : (
         <SignupPage
@@ -574,6 +605,7 @@ const AuthPages = () => {
           setShowRoleDropdown={setShowRoleDropdown}
           setCurrentPage={setCurrentPage}
           roles={roles}
+          navigate={navigate}
         />
       )}
     </div>

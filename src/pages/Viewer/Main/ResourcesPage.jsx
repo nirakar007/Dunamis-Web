@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import {
   ArrowLeft,
   BookOpen,
@@ -402,7 +403,8 @@ It's used for:
         case "author":
           comparison = a.author.localeCompare(b.author);
           break;
-        case "views":f
+        case "views":
+          f;
           comparison = a.views - b.views;
           break;
         case "duration":
@@ -738,166 +740,175 @@ It's used for:
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="flex">
-        {/* Left Sidebar */}
-        <div className="w-44 bg-white shadow-sm border-r border-gray-200 min-h-screen">
-          <div className="p-3">
-            <h2 className="font-semibold text-gray-800 text-2xl mb-6 px-4 py-4 border-b-2">
-              Contents
-            </h2>
-            <div className="space-y-3">
-              <button
-                onClick={() => {
-                  setActiveTab("videos");
-                  setSelectedContent(null);
-                }}
-                className={`w-full text-left px-4 py-3 rounded-sm text-sm font-medium transition-all duration-200 ${
-                  activeTab === "videos"
-                    ? "bg-custom-blue text-white shadow-sm"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
-                }`}
-              >
-                Videos ({videos.length})
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab("read");
-                  setSelectedContent(null);
-                }}
-                className={`w-full text-left px-4 py-3 rounded-sm text-sm font-medium transition-all duration-200 ${
-                  activeTab === "read"
-                    ? "bg-custom-blue text-white shadow-sm"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
-                }`}
-              >
-                Read (4)
-              </button>
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="flex">
+          {/* Left Sidebar */}
+          <div className="w-44 bg-white shadow-sm border-r border-gray-200 min-h-screen">
+            <div className="p-3">
+              <h2 className="font-semibold text-gray-800 text-2xl mb-6 px-4 py-4 border-b-2">
+                Contents
+              </h2>
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    setActiveTab("videos");
+                    setSelectedContent(null);
+                  }}
+                  className={`w-full text-left px-4 py-3 rounded-sm text-sm font-medium transition-all duration-200 ${
+                    activeTab === "videos"
+                      ? "bg-custom-blue text-white shadow-sm"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
+                  }`}
+                >
+                  Videos ({videos.length})
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab("read");
+                    setSelectedContent(null);
+                  }}
+                  className={`w-full text-left px-4 py-3 rounded-sm text-sm font-medium transition-all duration-200 ${
+                    activeTab === "read"
+                      ? "bg-custom-blue text-white shadow-sm"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
+                  }`}
+                >
+                  Read (4)
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Main Content */}
-        <div className="flex-1">
-          {!selectedContent ? (
-            <div className="p-8">
-              {/* Search Bar */}
-              <div className="relative mb-8">
-                <Search className="absolute left-4 top-4 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search in contents, eg. Communication, Art"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 border-b border-gray-400 focus:border-custom-blue bg-white text-gray-800 placeholder-gray-500"
-                />
+          {/* Main Content */}
+          <div className="flex-1">
+            {!selectedContent ? (
+              <div className="p-8">
+                {/* Search Bar */}
+                <div className="relative mb-8">
+                  <Search className="absolute left-4 top-4 w-5 h-5 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search in contents, eg. Communication, Art"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-12 pr-4 py-4 border-b border-gray-400 focus:border-custom-blue bg-white text-gray-800 placeholder-gray-500"
+                  />
+                </div>
+
+                <ContentList />
+              </div>
+            ) : (
+              <div className="p-8">
+                {/* Back button */}
+                <button
+                  onClick={() => setSelectedContent(null)}
+                  className="mb-6 text-custom-blue hover:text-custom-blue transition-colors flex items-center font-medium"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to {activeTab}
+                </button>
+
+                <PDFReader content={selectedContent} />
+              </div>
+            )}
+          </div>
+
+          {/* Right Sidebar - Support Section */}
+          {!selectedContent && (
+            <div className="w-80 bg-white shadow-sm border-l border-gray-200 p-6">
+              <div className="mb-8">
+                <div className="flex items-center mb-3">
+                  <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center mr-3">
+                    <BookOpen className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-800">Support</span>
+                    <span className="text-sm text-gray-600 ml-2">
+                      Free Education
+                    </span>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600 mb-6 leading-relaxed">
+                  Help the creator continue making quality educational content.
+                </p>
+
+                <div className="space-y-3">
+                  <button className="w-full border-gray-500 border-2 border-opacity-30 text-gray-700 py-3 px-4 rounded-lg text-sm font-medium hover:bg-custom-blue hover:text-white transition-colors shadow-sm">
+                    💳 Donate Rs 250
+                  </button>
+                  <button className="w-full border-gray-500 border-2 border-opacity-30 text-gray-700 py-3 px-4 rounded-lg text-sm font-medium hover:bg-yellow-600 hover:text-white transition-colors shadow-sm">
+                    💳 Donate Rs 500
+                  </button>
+                  <button className="w-full border-custom-blue border-2 border-opacity-30 text-gray-700 py-3 px-4 rounded-lg text-sm font-medium hover:bg-orange-600 hover:text-white transition-colors shadow-sm">
+                    Custom amount
+                  </button>
+                </div>
               </div>
 
-              <ContentList />
-            </div>
-          ) : (
-            <div className="p-8">
-              {/* Back button */}
-              <button
-                onClick={() => setSelectedContent(null)}
-                className="mb-6 text-custom-blue hover:text-custom-blue transition-colors flex items-center font-medium"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to {activeTab}
-              </button>
+              <div className="mb-8">
+                <div className="flex items-center mb-4">
+                  <Mail className="w-5 h-5 text-gray-600 mr-2" />
+                  <span className="font-semibold text-gray-800">
+                    Get Updates
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                  Subscribe to get notified of new content from this teacher.
+                </p>
+                <input
+                  type="email"
+                  placeholder="Your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm mb-4 focus:ring-2 focus:ring-custom-blue focus:border-transparent"
+                />
+                <button className="w-full  bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-lg text-sm font-medium hover:bg-gray-900 hover:text-white transition-colors shadow-sm">
+                  📝 Subscribe
+                </button>
+              </div>
 
-              <PDFReader content={selectedContent} />
+              <div>
+                <div className="flex items-center mb-4">
+                  <div className="w-6 h-6 bg-custom-blue rounded-full flex items-center justify-center mr-2">
+                    <BookOpen className="w-3 h-3 text-white" />
+                  </div>
+                  <span className="font-semibold text-gray-800">
+                    Related Content
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="border border-gray-200 rounded-lg p-3 hover:border-custom-blue transition-colors cursor-pointer">
+                    <img
+                      src="https://images.unsplash.com/photo-1551434678-e076c223a692?w=100&h=60&fit=crop"
+                      alt="Learn Spanish"
+                      className="w-full h-16 object-cover rounded mb-2"
+                    />
+                    <p className="text-xs text-center font-medium text-gray-700">
+                      Learn Spanish
+                    </p>
+                  </div>
+                  <div className="border border-gray-200 rounded-lg p-3 hover:border-custom-blue transition-colors cursor-pointer">
+                    <img
+                      src="https://images.unsplash.com/photo-1527866959252-deab85ef7d1b?w=100&h=60&fit=crop"
+                      alt="Learn German"
+                      className="w-full h-16 object-cover rounded mb-2"
+                    />
+                    <p className="text-xs text-center font-medium text-gray-700">
+                      Learn German
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
-
-        {/* Right Sidebar - Support Section */}
-        {!selectedContent && (
-          <div className="w-80 bg-white shadow-sm border-l border-gray-200 p-6">
-            <div className="mb-8">
-              <div className="flex items-center mb-3">
-                <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center mr-3">
-                  <BookOpen className="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <span className="font-semibold text-gray-800">Support</span>
-                  <span className="text-sm text-gray-600 ml-2">
-                    Free Education
-                  </span>
-                </div>
-              </div>
-              <p className="text-sm text-gray-600 mb-6 leading-relaxed">
-                Help the creator continue making quality educational content.
-              </p>
-
-              <div className="space-y-3">
-                <button className="w-full border-gray-500 border-2 border-opacity-30 text-gray-700 py-3 px-4 rounded-lg text-sm font-medium hover:bg-custom-blue transition-colors shadow-sm">
-                  💳 Donate Rs 250
-                </button>
-                <button className="w-full border-gray-500 border-2 border-opacity-30 text-gray-700 py-3 px-4 rounded-lg text-sm font-medium hover:bg-yellow-600 transition-colors shadow-sm">
-                  💳 Donate Rs 500
-                </button>
-                <button className="w-full border-custom-blue border-2 border-opacity-30 text-gray-700 py-3 px-4 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors shadow-sm">
-                  Custom amount
-                </button>
-              </div>
-            </div>
-
-            <div className="mb-8">
-              <div className="flex items-center mb-4">
-                <Mail className="w-5 h-5 text-gray-600 mr-2" />
-                <span className="font-semibold text-gray-800">Get Updates</span>
-              </div>
-              <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-                Subscribe to get notified of new content from this teacher.
-              </p>
-              <input
-                type="email"
-                placeholder="Your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm mb-4 focus:ring-2 focus:ring-custom-blue focus:border-transparent"
-              />
-              <button className="w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm">
-                📝 Subscribe
-              </button>
-            </div>
-
-            <div>
-              <div className="flex items-center mb-4">
-                <div className="w-6 h-6 bg-custom-blue rounded-full flex items-center justify-center mr-2">
-                  <BookOpen className="w-3 h-3 text-white" />
-                </div>
-                <span className="font-semibold text-gray-800">
-                  Related Content
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="border border-gray-200 rounded-lg p-3 hover:border-custom-blue transition-colors cursor-pointer">
-                  <img
-                    src="https://images.unsplash.com/photo-1551434678-e076c223a692?w=100&h=60&fit=crop"
-                    alt="Learn Spanish"
-                    className="w-full h-16 object-cover rounded mb-2"
-                  />
-                  <p className="text-xs text-center font-medium text-gray-700">
-                    Learn Spanish
-                  </p>
-                </div>
-                <div className="border border-gray-200 rounded-lg p-3 hover:border-custom-blue transition-colors cursor-pointer">
-                  <img
-                    src="https://images.unsplash.com/photo-1527866959252-deab85ef7d1b?w=100&h=60&fit=crop"
-                    alt="Learn German"
-                    className="w-full h-16 object-cover rounded mb-2"
-                  />
-                  <p className="text-xs text-center font-medium text-gray-700">
-                    Learn German
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      </motion.div>
     </div>
   );
 };

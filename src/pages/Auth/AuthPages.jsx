@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -50,10 +51,10 @@ const RoleDropdown = ({
     <button
       type="button"
       onClick={() => setShowDropdown(!showDropdown)}
-      className="flex items-center gap-2 text-cyan-500 hover:text-cyan-700 transition-colors"
+      className="flex items-center gap-2 text-custom-blue hover:text-custom-blue transition-colors"
     >
       <div className="w-4 h-4 rounded-full flex items-center justify-center">
-        <div className="w-4 h-4 bg-cyan-500 rounded-full"></div>
+        <div className="w-4 h-4 bg-custom-blue rounded-full"></div>
       </div>
       <span className="text-sm font-medium">{selectedRole}</span>
       <svg
@@ -87,12 +88,12 @@ const RoleDropdown = ({
               onClick={() => onRoleSelect(role)}
               className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors first:rounded-t-lg last:rounded-b-lg ${
                 selectedRole === role
-                  ? "bg-blue-50 text-cyan-600"
+                  ? "bg-blue-50 text-custom-blue"
                   : "text-gray-700"
               }`}
             >
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-cyan-500 rounded-full"></div>
+                <div className="w-3 h-3 bg-custom-blue rounded-full"></div>
                 {role}
               </div>
             </button>
@@ -180,7 +181,7 @@ const LoginPage = ({
                   placeholder="Enter email..."
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full px-0 py-3 border-0 border-b-2 border-gray-200 focus:border-cyan-500 focus:outline-none placeholder-gray-400 bg-transparent"
+                  className="w-full px-0 py-3 border-0 border-b-2 border-gray-200 focus:border-custom-blue focus:outline-none placeholder-gray-400 bg-transparent"
                 />
               </div>
 
@@ -191,7 +192,7 @@ const LoginPage = ({
                   placeholder="Enter password..."
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="w-full px-0 py-3 pr-10 border-0 border-b-2 border-gray-200 focus:border-cyan-500 focus:outline-none placeholder-gray-400 bg-transparent"
+                  className="w-full px-0 py-3 pr-10 border-0 border-b-2 border-gray-200 focus:border-custom-blue focus:outline-none placeholder-gray-400 bg-transparent"
                 />
                 <button
                   type="button"
@@ -216,7 +217,7 @@ const LoginPage = ({
                   <button
                     type="button"
                     onClick={() => setCurrentPage("signup")}
-                    className="text-cyan-600 hover:text-cyan-500 hover:underline underline-offset-2 font-medium"
+                    className="text-custom-blue hover:text-custom-blue hover:underline underline-offset-2 font-medium"
                   >
                     Sign up
                   </button>
@@ -286,7 +287,7 @@ const SignupPage = ({
         {/* Illustration Section */}
         <div className="hidden lg:flex flex-1 justify-center items-center">
           <div className="relative">
-            <div className="w-80 h-64 bg-white rounded-lg shadow-lg p-6 border-l-4 border-cyan-500">
+            <div className="w-80 h-64 bg-white rounded-lg shadow-lg p-6 border-l-4 border-custom-blue">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
                 <div className="flex-1">
@@ -349,7 +350,7 @@ const SignupPage = ({
                   placeholder="Enter email..."
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full px-0 py-3 border-0 border-b-2 border-gray-200 focus:border-cyan-500 focus:outline-none placeholder-gray-400 bg-transparent"
+                  className="w-full px-0 py-3 border-0 border-b-2 border-gray-200 focus:border-custom-blue focus:outline-none placeholder-gray-400 bg-transparent"
                 />
               </div>
 
@@ -360,7 +361,7 @@ const SignupPage = ({
                   placeholder="Create password..."
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="w-full px-0 py-3 pr-10 border-0 border-b-2 border-gray-200 focus:border-cyan-500 focus:outline-none placeholder-gray-400 bg-transparent"
+                  className="w-full px-0 py-3 pr-10 border-0 border-b-2 border-gray-200 focus:border-custom-blue focus:outline-none placeholder-gray-400 bg-transparent"
                 />
                 <button
                   type="button"
@@ -412,7 +413,7 @@ const SignupPage = ({
                   placeholder="Confirm password..."
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
-                  className="w-full px-0 py-3 pr-10 border-0 border-b-2 border-gray-200 focus:border-cyan-500 focus:outline-none placeholder-gray-400 bg-transparent"
+                  className="w-full px-0 py-3 pr-10 border-0 border-b-2 border-gray-200 focus:border-custom-blue focus:outline-none placeholder-gray-400 bg-transparent"
                 />
                 <button
                   type="button"
@@ -498,7 +499,7 @@ const SignupPage = ({
                 <button
                   type="button"
                   onClick={() => setCurrentPage("login")}
-                  className="text-cyan-600 hover:text-cyan-500 font-medium"
+                  className="text-custom-blue hover:text-custom-blue font-medium"
                 >
                   Sign in
                 </button>
@@ -554,60 +555,67 @@ const AuthPages = () => {
 
   return (
     <div>
-      <div className="fixed top-30 left-4 z-50 bg-white rounded-lg shadow-lg p-2">
-        <div className="flex gap-2">
-          <button
-            onClick={() => setCurrentPage("login")}
-            className={`px-4 py-2 rounded ${
-              currentPage === "login"
-                ? "bg-gray-900 text-white"
-                : "bg-gray-100 text-gray-700"
-            }`}
-          >
-            Login Page
-          </button>
-          <button
-            onClick={() => setCurrentPage("signup")}
-            className={`px-4 py-2 rounded ${
-              currentPage === "signup"
-                ? "bg-gray-900 text-white"
-                : "bg-gray-100 text-gray-700"
-            }`}
-          >
-            Signup Page
-          </button>
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="fixed top-30 left-4 z-50 bg-white rounded-lg shadow-lg p-2">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setCurrentPage("login")}
+              className={`px-4 py-2 rounded ${
+                currentPage === "login"
+                  ? "bg-gray-900 text-white"
+                  : "bg-gray-100 text-gray-700"
+              }`}
+            >
+              Login Page
+            </button>
+            <button
+              onClick={() => setCurrentPage("signup")}
+              className={`px-4 py-2 rounded ${
+                currentPage === "signup"
+                  ? "bg-gray-900 text-white"
+                  : "bg-gray-100 text-gray-700"
+              }`}
+            >
+              Signup Page
+            </button>
+          </div>
         </div>
-      </div>
 
-      {currentPage === "login" ? (
-        <LoginPage
-          formData={formData}
-          handleInputChange={handleInputChange}
-          handleRoleSelect={handleRoleSelect}
-          showPassword={showPassword}
-          setShowPassword={setShowPassword}
-          showRoleDropdown={showRoleDropdown}
-          setShowRoleDropdown={setShowRoleDropdown}
-          setCurrentPage={setCurrentPage}
-          roles={roles}
-          navigate={navigate}
-        />
-      ) : (
-        <SignupPage
-          formData={formData}
-          handleInputChange={handleInputChange}
-          handleRoleSelect={handleRoleSelect}
-          showPassword={showPassword}
-          setShowPassword={setShowPassword}
-          showConfirmPassword={showConfirmPassword}
-          setShowConfirmPassword={setShowConfirmPassword}
-          showRoleDropdown={showRoleDropdown}
-          setShowRoleDropdown={setShowRoleDropdown}
-          setCurrentPage={setCurrentPage}
-          roles={roles}
-          navigate={navigate}
-        />
-      )}
+        {currentPage === "login" ? (
+          <LoginPage
+            formData={formData}
+            handleInputChange={handleInputChange}
+            handleRoleSelect={handleRoleSelect}
+            showPassword={showPassword}
+            setShowPassword={setShowPassword}
+            showRoleDropdown={showRoleDropdown}
+            setShowRoleDropdown={setShowRoleDropdown}
+            setCurrentPage={setCurrentPage}
+            roles={roles}
+            navigate={navigate}
+          />
+        ) : (
+          <SignupPage
+            formData={formData}
+            handleInputChange={handleInputChange}
+            handleRoleSelect={handleRoleSelect}
+            showPassword={showPassword}
+            setShowPassword={setShowPassword}
+            showConfirmPassword={showConfirmPassword}
+            setShowConfirmPassword={setShowConfirmPassword}
+            showRoleDropdown={showRoleDropdown}
+            setShowRoleDropdown={setShowRoleDropdown}
+            setCurrentPage={setCurrentPage}
+            roles={roles}
+            navigate={navigate}
+          />
+        )}
+      </motion.div>
     </div>
   );
 };

@@ -34,32 +34,37 @@ function CategoriesSection() {
       icon: Monitor,
       title: "Mathematics",
       courseCount: 12,
-      color: "text-cyan-500",
+      color: "text-custom-blue",
     },
-    { icon: Beaker, title: "Science", courseCount: 8, color: "text-cyan-500" },
+    {
+      icon: Beaker,
+      title: "Science",
+      courseCount: 8,
+      color: "text-custom-blue",
+    },
     {
       icon: Laptop,
       title: "Technology",
       courseCount: 27,
-      color: "text-cyan-500",
+      color: "text-custom-blue",
     },
     {
       icon: Globe,
       title: "Languages",
       courseCount: 101,
-      color: "text-cyan-500",
+      color: "text-custom-blue",
     },
     {
       icon: TrendingUp,
       title: "Art & Design",
       courseCount: 15,
-      color: "text-cyan-500",
+      color: "text-custom-blue",
     },
     {
       icon: Briefcase,
       title: "Business & Finance",
       courseCount: 17,
-      color: "text-cyan-500",
+      color: "text-custom-blue",
     },
   ];
 
@@ -72,31 +77,13 @@ function CategoriesSection() {
       </div>
 
       <h2 className="text-3xl font-bold text-gray-900 mb-12">
-        Explore <span className="text-gray-600">by Category</span>
+        Explore <span className="text-gray-600 font-light">by Category</span>
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {categories.map((category, index) => (
           <CategoryCard key={index} {...category} />
         ))}
-      </div>
-
-      {/* Filter Controls */}
-      <div className="flex flex-wrap gap-4 items-center justify-between bg-gray-50 p-4 rounded-lg">
-        <div className="flex gap-4">
-          <select className="border border-gray-300 rounded px-3 py-2 text-sm">
-            <option>Level</option>
-          </select>
-          <select className="border border-gray-300 rounded px-3 py-2 text-sm">
-            <option>Duration</option>
-          </select>
-          <select className="border border-gray-300 rounded px-3 py-2 text-sm">
-            <option>Sort by</option>
-          </select>
-        </div>
-        <button className="bg-cyan-600 text-white px-6 py-2 rounded font-medium hover:bg-blue-600 transition-colors">
-          Done
-        </button>
       </div>
     </div>
   );

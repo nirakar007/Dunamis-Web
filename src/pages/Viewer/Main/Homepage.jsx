@@ -1,4 +1,4 @@
-import ScrollFloat from "../../../components/animations/ScrollFloat";
+import { motion } from "framer-motion";
 import CategoriesSection from "./components/CategoriesSection";
 import DonationSection from "./components/DonationSection";
 import FeaturedSection from "./components/FeaturedSection";
@@ -7,14 +7,20 @@ import NewsletterSection from "./components/NewsletterSection";
 
 function Homepage() {
   return (
-    <div className="">
-      
+    <div className="p-2">
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <SearchBar />
         <HeroSection />
         <CategoriesSection />
         <FeaturedSection />
         <DonationSection />
         <NewsletterSection />
+      </motion.div>
     </div>
   );
 }
@@ -31,7 +37,7 @@ const SearchBar = () => {
         <input
           type="text"
           placeholder="Search for courses, topics or your own learning preferences"
-          className="w-full px-4 py-3 pl-4 pr-12 border focus:border-blue-400 rounded focus:outline-none focus:border-b-4"
+          className="w-full px-4 py-3 pl-4 pr-12 rounded focus:outline-custom-blue"
         />
         <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
       </div>

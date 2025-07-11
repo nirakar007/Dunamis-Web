@@ -1,5 +1,6 @@
 // Featured Content Section Component
-import { Play } from "lucide-react";
+import { ArrowUpRightFromCircle, Play } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 function FeaturedSection() {
   const featuredCourses = [
     {
@@ -37,8 +38,8 @@ function FeaturedSection() {
   return (
     <div className="bg-gray-50 py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-12">
-          <span className="text-cyan-600">Featured</span> Content
+        <h2 className="text-4xl font-bold text-gray-900 mb-4">
+          <span className="text-custom-blue">Featured</span> Content
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -62,6 +63,10 @@ const FeaturedCard = ({
   image,
   category,
 }) => {
+  const navigate = useNavigate();
+  const handleClick = (path) => {
+    navigate(path);
+  };
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
       <div className="relative">
@@ -80,8 +85,11 @@ const FeaturedCard = ({
             <button className="bg-gray-900 text-white px-3 py-1 rounded text-sm hover:bg-gray-800 transition-colors">
               {category}
             </button>
-            <button className="border border-gray-300 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-50 transition-colors">
-              Preview
+            <button
+              onClick={() => handleClick("/resources")}
+              className="text-custom-blue    px-3 py-1 rounded text-sm hover:bg-gray-50 transition-colors"
+            >
+              <ArrowUpRightFromCircle />
             </button>
           </div>
         </div>

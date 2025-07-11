@@ -1,34 +1,77 @@
 import { motion } from "framer-motion";
-import { Mail, MessageSquare, Phone, Send } from "lucide-react";
+import { CheckCircle, MessageSquare, Send, XCircle } from "lucide-react"; // Removed ArrowLeft from here
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom"; // This import is commented out as it's not available in this environment
 
 const ContactPage = () => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate(); // This hook is not available in this environment
   const [formData, setFormData] = useState({
     email: "",
     phone: "",
     query: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState({ type: "", text: "" }); // {type: 'success'|'error', text: 'message'}
 
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+    setSubmitMessage({ type: "", text: "" }); // Clear message on input change
   };
 
   const handleSubmit = () => {
-    if (formData.email && formData.query) {
-      alert("Thank you for your message! We'll get back to you soon.");
-      setFormData({ email: "", phone: "", query: "" });
-    } else {
-      alert("Please fill in all required fields.");
+    setSubmitMessage({ type: "", text: "" }); // Clear previous messages
+
+    if (!formData.email || !formData.query) {
+      setSubmitMessage({
+        type: "error",
+        text: "Email address and query are required.",
+      });
+      return;
     }
+
+    // Basic email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setSubmitMessage({
+        type: "error",
+        text: "Please enter a valid email address.",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    // Simulate API call for form submission
+    setTimeout(() => {
+      setIsSubmitting(false);
+      // Simulate success or failure
+      if (Math.random() > 0.1) {
+        // 90% chance of success
+        setSubmitMessage({
+          type: "success",
+          text: "Thank you for your message! We'll get back to you soon.",
+        });
+        setFormData({ email: "", phone: "", query: "" }); // Clear form on success
+      } else {
+        setSubmitMessage({
+          type: "error",
+          text: "Failed to send message. Please try again later.",
+        });
+      }
+    }, 2000); // Simulate network delay
   };
 
+  // The handleBackButtonClick function is kept for structural completeness,
+  // but `useNavigate` is not functional in this isolated component environment.
+  // In a full React app with react-router-dom, this would work as intended.
   const handleBackButtonClick = (path) => {
-    navigate(path);
+    // navigate(path); // This line would work in a full React app with routing
+    console.log(`Navigating to: ${path} (simulated)`);
+    // For this isolated component, we'll just clear selected content if it was part of a larger app.
+    // If this component is rendered directly, this button won't 'go back' in the browser history.
   };
 
   return (
@@ -42,12 +85,13 @@ const ContactPage = () => {
         <div className="max-w-4xl mx-auto px-6">
           <div className="text-start mx-10 mb-12">
             <div className="flex space-x-3 items-center mb-4">
+              {/* Back button - Reverted to original image path */}
               <button
                 onClick={() => {
                   handleBackButtonClick("/");
                 }}
               >
-                <img src="src\assets\images\back_btn.svg" alt="back-btn" />
+                <img src="src/assets/images/back_btn.svg" alt="back-btn" />
               </button>
               <h1 className="text-2xl font-bold text-gray-800">Contact Us</h1>
             </div>
@@ -74,7 +118,6 @@ const ContactPage = () => {
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Mail className="w-4 h-4 inline mr-1" />
                     Email Address
                   </label>
                   <input
@@ -84,12 +127,12 @@ const ContactPage = () => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                     placeholder="your.email@example.com"
+                    disabled={isSubmitting}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Phone className="w-4 h-4 inline mr-1" />
                     Phone Number
                   </label>
                   <input
@@ -99,6 +142,7 @@ const ContactPage = () => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                     placeholder="+977-123456789"
+                    disabled={isSubmitting}
                   />
                 </div>
 
@@ -113,16 +157,70 @@ const ContactPage = () => {
                     rows={5}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
                     placeholder="Tell us how we can help you..."
+                    disabled={isSubmitting}
                   />
                 </div>
 
                 <button
                   onClick={handleSubmit}
-                  className="w-full bg-gray-900 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2 transform hover:scale-105"
+                  className={`w-full bg-gray-900 text-white py-3 px-6 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-2 transform
+                    ${
+                      isSubmitting
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:scale-105 hover:bg-gray-800"
+                    }`}
+                  disabled={isSubmitting}
                 >
-                  <Send className="w-4 h-4" />
-                  <span>Send Message</span>
+                  {isSubmitting ? (
+                    <span className="flex items-center justify-center">
+                      <svg
+                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Sending...
+                    </span>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      <span>Send Message</span>
+                    </>
+                  )}
                 </button>
+
+                {submitMessage.text && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`mt-3 flex items-center text-sm ${
+                      submitMessage.type === "success"
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
+                  >
+                    {submitMessage.type === "success" ? (
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                    ) : (
+                      <XCircle className="w-4 h-4 mr-2" />
+                    )}
+                    {submitMessage.text}
+                  </motion.div>
+                )}
               </div>
             </div>
 
@@ -133,7 +231,7 @@ const ContactPage = () => {
                   📧 General Inquiries
                 </h3>
                 <p className="text-gray-600 mb-2">Email: hello@dunamis.org</p>
-                <p className="text-gray-600">Phone: +977-123456789</p>
+                <p className="text-600">Phone: +977-123456789</p>
               </div>
 
               <div className="bg-white rounded-2xl p-6 shadow-lg">

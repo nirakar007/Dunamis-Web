@@ -53,11 +53,9 @@ const AppRoutes = () => {
 
       {/* Admin routes */}
       <Route path="/admin" element={<AdminDashboard />} />
-      <Route path="/admin/dashboard" element={<AdminDashboard />} />
 
       {/* Teacher routes */}
       <Route path="/teacher" element={<TeacherDashboard />} />
-      <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
 
       {/* Catch-all route for 404 */}
       <Route path="*" element={<NotFound />} />

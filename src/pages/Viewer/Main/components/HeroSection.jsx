@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 // Custom Carousel Component
 function CustomCarousel() {
@@ -87,6 +88,10 @@ function CustomCarousel() {
 
 // Hero Section Component
 function HeroSection() {
+  const navigate = useNavigate();
+  const handleClick = (path) => {
+    navigate(path);
+  };
   return (
     <div className="rounded-xl overflow-hidden bg-gradient-to-br bg-custom-blue text-white">
       <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[500px]">
@@ -104,7 +109,12 @@ function HeroSection() {
               "If you are determined to learn, no one can stop you." - Zig
               Ziglar
             </p>
-            <button className="bg-white/20 backdrop-blur-sm border border-white/30 text-white px-8 py-4 rounded-full font-semibold hover:bg-white/30 transition-all duration-300 hover:scale-105 shadow-lg">
+            <button
+              onClick={() => {
+                handleClick("/resources");
+              }}
+              className="bg-white/20 backdrop-blur-sm border border-white/30 text-white px-8 py-4 rounded-full font-semibold hover:bg-white/30 transition-all duration-300 hover:scale-105 shadow-lg"
+            >
               Start Learning Today
             </button>
           </div>

@@ -8,7 +8,7 @@ function Navbar() {
     navigate(path);
   };
   return (
-    <nav className="flex justify-between items-center h-16 px-6 md:h-16 lg:h-20">
+    <nav className="flex justify-between items-center h-16 px-6 md:h-16 lg:h-20 bg-gradient-to-b from-white to-transparent">
       <button
         onClick={() => handleNavigation("/")}
         className="font-semibold text-3xl hover:text-cyan-500 transition duration-200 ease-in-out"

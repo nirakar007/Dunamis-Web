@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import {
   BarChart3,
   Clock,
@@ -32,7 +31,7 @@ const ActionButton = ({ icon: Icon, label, variant = "primary", onClick }) => {
     secondary:
       "bg-gray-700 hover:bg-gray-800 text-white shadow-lg hover:shadow-xl",
     edit: "bg-gray-600 hover:bg-gray-700 text-white text-xs px-2 py-1",
-    delete: "bg-gray-800 hover:bg-gray-900 text-white text-xs px-2 py-1",
+    delete: "bg-red-600 hover:bg-red-700 text-white text-xs px-2 py-1",
   };
 
   return (
@@ -43,7 +42,62 @@ const ActionButton = ({ icon: Icon, label, variant = "primary", onClick }) => {
   );
 };
 
-export default function TeacherDashboard() {
+// Notification Component
+const Notification = ({ message, type, onClose }) => {
+  const bgColor = type === "success" ? "bg-custom-blue" : "bg-red-600";
+
+  return (
+    <div
+      className={`fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-pulse`}
+    >
+      <div className="flex items-center gap-2">
+        <span>{message}</span>
+        <button
+          onClick={onClose}
+          className="ml-2 hover:bg-white/20 rounded p-1"
+        >
+          <X size={16} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Delete Confirmation Modal
+const DeleteModal = ({ isOpen, onClose, onConfirm, itemTitle }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl transform transition-all duration-300 scale-100">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          Confirm Delete
+        </h3>
+        <p className="text-gray-600 mb-6">
+          Are you sure you want to delete "{itemTitle}"? This action cannot be
+          undone.
+        </p>
+        <div className="flex gap-4 justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default function TeacherDashboard({ setCurrentPage }) {
+  // Added setCurrentPage prop
   const [name, setName] = useState("Namikaze Minato");
   const [contentTitle, setContentTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -51,13 +105,22 @@ export default function TeacherDashboard() {
   const [selectedYear, setSelectedYear] = useState("2016");
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [notification, setNotification] = useState(null);
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    itemIndex: null,
+    itemTitle: "",
+  });
+  const [editingContentIndex, setEditingContentIndex] = useState(null); // New state for editing
   const navigate = useNavigate();
-
   const handleClick = (path) => {
-    navigate(path);
+    showNotification(`Logging out...`, "success");
+    setTimeout(() => {
+      navigate(path);
+    }, 500);
   };
 
-  const contentData = [
+  const [contentData, setContentData] = useState([
     {
       title: "Learn Japanese",
       status: "Published",
@@ -76,7 +139,7 @@ export default function TeacherDashboard() {
       views: 0,
       date: "June 1, 2025 - 3 days ago",
     },
-  ];
+  ]);
 
   const chartData = {
     2007: { donations: 5, contributions: 3, other: 2 },
@@ -89,10 +152,110 @@ export default function TeacherDashboard() {
     2014: { donations: 52, contributions: 38, other: 28 },
     2015: { donations: 68, contributions: 48, other: 35 },
     2016: { donations: 85, contributions: 62, other: 45 },
+    2017: { donations: 90, contributions: 65, other: 48 },
+    2018: { donations: 95, contributions: 70, other: 50 },
+    2019: { donations: 100, contributions: 75, other: 55 },
+    2020: { donations: 105, contributions: 80, other: 60 },
+    2021: { donations: 110, contributions: 85, other: 65 },
+    2022: { donations: 115, contributions: 90, other: 70 },
+    2023: { donations: 120, contributions: 95, other: 75 },
+    2024: { donations: 125, contributions: 100, other: 80 },
+    2025: { donations: 130, contributions: 105, other: 85 },
   };
 
-  const maxValue = 100;
+  const maxValue = 150; // Adjusted max value for chart scaling
   const years = Object.keys(chartData);
+
+  // Show notification
+  const showNotification = (message, type = "success") => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 3000);
+  };
+
+  // Handle delete confirmation
+  const handleDeleteClick = (index, title) => {
+    setDeleteModal({ isOpen: true, itemIndex: index, itemTitle: title });
+  };
+
+  const handleDeleteConfirm = () => {
+    const { itemIndex, itemTitle } = deleteModal;
+    setContentData((prev) => prev.filter((_, index) => index !== itemIndex));
+    setDeleteModal({ isOpen: false, itemIndex: null, itemTitle: "" });
+    showNotification(`"${itemTitle}" has been deleted successfully`, "success");
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModal({ isOpen: false, itemIndex: null, itemTitle: "" });
+  };
+
+  // Handle edit action
+  const handleEditClick = (index) => {
+    const itemToEdit = contentData[index];
+    setContentTitle(itemToEdit.title);
+    setDescription(""); // Description is not stored, so clear it
+    setCategory(""); // Category is not stored, so clear it
+    setUploadedFiles([]); // Files are not stored, so clear them
+    setEditingContentIndex(index);
+    showNotification(`Editing "${itemToEdit.title}"`, "success");
+  };
+
+  // Handle form submission (Add or Update)
+  const handleSubmitContent = () => {
+    if (!contentTitle.trim()) {
+      showNotification("Content title is required.", "error");
+      return;
+    }
+
+    const newContent = {
+      title: contentTitle.trim(),
+      status: "Pending", // New content is always pending
+      views: 0,
+      date:
+        new Date().toLocaleDateString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        }) + " - just now",
+    };
+
+    if (editingContentIndex !== null) {
+      // Update existing content
+      setContentData((prev) =>
+        prev.map((item, index) =>
+          index === editingContentIndex
+            ? { ...item, title: newContent.title, status: "Pending" }
+            : item
+        )
+      );
+      showNotification(
+        `"${newContent.title}" updated successfully!`,
+        "success"
+      );
+      setEditingContentIndex(null); // Exit editing mode
+    } else {
+      // Add new content
+      setContentData((prev) => [...prev, newContent]);
+      showNotification(
+        "Content uploaded successfully and submitted for review!",
+        "success"
+      );
+    }
+
+    // Clear form fields
+    setContentTitle("");
+    setDescription("");
+    setCategory("");
+    setUploadedFiles([]);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingContentIndex(null);
+    setContentTitle("");
+    setDescription("");
+    setCategory("");
+    setUploadedFiles([]);
+    showNotification("Edit cancelled.", "success");
+  };
 
   // File upload handlers
   const handleFileUpload = (files) => {
@@ -101,9 +264,9 @@ export default function TeacherDashboard() {
       name: file.name,
       size: file.size,
       type: file.type,
-      file: file,
     }));
     setUploadedFiles((prev) => [...prev, ...newFiles]);
+    showNotification(`${newFiles.length} file(s) added.`, "success");
   };
 
   const handleDragOver = (e) => {
@@ -120,7 +283,9 @@ export default function TeacherDashboard() {
     e.preventDefault();
     setIsDragOver(false);
     const files = e.dataTransfer.files;
-    handleFileUpload(files);
+    if (files.length > 0) {
+      handleFileUpload(files);
+    }
   };
 
   const handleFileInputChange = (e) => {
@@ -132,6 +297,7 @@ export default function TeacherDashboard() {
 
   const removeFile = (fileId) => {
     setUploadedFiles((prev) => prev.filter((file) => file.id !== fileId));
+    showNotification("File removed.", "success");
   };
 
   const getFileIcon = (fileName) => {
@@ -143,12 +309,24 @@ export default function TeacherDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+      {/* Notification */}
+      {notification && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          onClose={() => setNotification(null)}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteModal
+        isOpen={deleteModal.isOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        itemTitle={deleteModal.itemTitle}
+      />
+
+      <div className="animate-fadeIn">
         {/* Header */}
         <header className="bg-white border-b border-gray-200 py-4">
           <div className="flex items-center justify-between p-1 mt-2">
@@ -156,27 +334,43 @@ export default function TeacherDashboard() {
               <BarChart3 size={20} />
               Teacher Dashboard
             </h2>
-            <div className="flex items-center gap-6 px-20">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 px-20">
+              <div className="flex items-center gap-2 border-2 rounded-md p-2 bg-blue-100">
                 <User size={16} />
                 <span className="text-sm">{name}</span>
               </div>
-              <div className="flex items-center gap-1 text-gray-800">
-                <Star size={16} className="text-gray-500" fill="gray" />
+              <div className="flex items-center gap-1 text-gray-800 border-2 rounded-md p-2">
+                <Star size={16} className="text-amber-500" fill="yellow" />
                 <span className="text-sm">Ratings: 5/10</span>
               </div>
-              <button className="flex items-center gap-2">
+              <button
+                className="flex items-center gap-2 border-2 rounded-md p-2"
+                onClick={() =>
+                  showNotification(
+                    "Simulating navigation to external website.",
+                    "success"
+                  )
+                }
+              >
                 <Globe size={16} />
                 <span className="text-sm">Go to website</span>
               </button>
               <button
                 onClick={() => {
-                  handleClick("/auth");
+                  setCurrentPage("login"); // Simulate logout by returning to login page
+                  showNotification("Logged out successfully!", "success");
                 }}
-                className="flex items-center gap-2 text-gray-500 hover:text-gray-700"
+                className="flex items-center gap-2 text-gray-500 hover:text-gray-700 border-2 rounded-md p-2"
               >
                 <LogOut size={16} />
-                <span className="text-sm hover:text-red-800">Log out</span>
+                <button
+                  onClick={() => {
+                    handleClick("/auth");
+                  }}
+                  className="text-sm hover:text-red-700"
+                >
+                  Log out
+                </button>
               </button>
             </div>
           </div>
@@ -188,19 +382,24 @@ export default function TeacherDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 border-2 rounded-sm">
               <DashboardCard
                 title="Published Content"
-                value="3"
+                value={
+                  contentData.filter((item) => item.status === "Published")
+                    .length
+                }
                 bgColor="bg-gray-100"
                 textColor="text-gray-800"
               />
               <DashboardCard
                 title="Pending Review"
-                value="2"
+                value={
+                  contentData.filter((item) => item.status === "Pending").length
+                }
                 bgColor="bg-gray-200"
                 textColor="text-gray-800"
               />
               <DashboardCard
                 title="Total Views"
-                value="376"
+                value={contentData.reduce((sum, item) => sum + item.views, 0)}
                 bgColor="bg-gray-100"
                 textColor="text-gray-700"
               />
@@ -213,11 +412,13 @@ export default function TeacherDashboard() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 border-2 rounded-sm">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 border-2 rounded-sm">
             {/* Upload Content */}
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <h1 className="py-2 border-b-2 border-custom-blue text-2xl font-semibold">
-                Upload New Content
+              <h1 className="py-2 border-b-2 border-blue-600 text-2xl font-semibold">
+                {editingContentIndex !== null
+                  ? "Edit Content"
+                  : "Upload New Content"}
               </h1>
 
               <div className="mt-6 space-y-4">
@@ -334,9 +535,24 @@ export default function TeacherDashboard() {
                   </select>
                 </div>
 
-                <button className="w-full bg-custom-blue hover:bg-blue-900 text-white py-3 rounded-md font-medium transition-all duration-200 transform shadow-lg hover:shadow-xl">
-                  Upload & Submit for Review
-                </button>
+                <div className="flex gap-4">
+                  <button
+                    onClick={handleSubmitContent}
+                    className="flex-1 bg-custom-blue hover:bg-blue-500 text-white py-3 rounded-md font-medium transition-all duration-200 transform shadow-lg hover:shadow-xl hover:scale-105"
+                  >
+                    {editingContentIndex !== null
+                      ? "Update Content"
+                      : "Upload & Submit for Review"}
+                  </button>
+                  {editingContentIndex !== null && (
+                    <button
+                      onClick={handleCancelEdit}
+                      className="flex-1 bg-gray-400 hover:bg-gray-500 text-white py-3 rounded-md font-medium transition-all duration-200 transform shadow-lg hover:shadow-xl hover:scale-105"
+                    >
+                      Cancel Edit
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -358,15 +574,15 @@ export default function TeacherDashboard() {
                   {contentData.map((item, index) => (
                     <div
                       key={index}
-                      className="grid grid-cols-4 gap-4 items-center py-2 hover:bg-gray-50 rounded"
+                      className="grid grid-cols-4 gap-4 items-center py-2 hover:bg-gray-50 rounded transition-colors"
                     >
                       <div className="text-sm text-gray-800">{item.title}</div>
                       <div>
                         <span
                           className={`px-2 py-1 rounded text-xs font-medium ${
                             item.status === "Published"
-                              ? "bg-gray-300 text-gray-800"
-                              : "bg-gray-200 text-gray-700"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-yellow-100 text-yellow-800"
                           }`}
                         >
                           {item.status}
@@ -374,8 +590,18 @@ export default function TeacherDashboard() {
                       </div>
                       <div className="text-sm text-gray-600">{item.views}</div>
                       <div className="flex gap-1">
-                        <ActionButton icon={Edit} label="" variant="edit" />
-                        <ActionButton icon={Trash2} label="" variant="delete" />
+                        <ActionButton
+                          icon={Edit}
+                          label=""
+                          variant="edit"
+                          onClick={() => handleEditClick(index)}
+                        />
+                        <ActionButton
+                          icon={Trash2}
+                          label=""
+                          variant="delete"
+                          onClick={() => handleDeleteClick(index, item.title)}
+                        />
                       </div>
                     </div>
                   ))}
@@ -396,52 +622,77 @@ export default function TeacherDashboard() {
                 Donations Received via courses
               </h4>
 
+              {/* Year Selector */}
+              <div className="mb-4">
+                <label
+                  htmlFor="year-select"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Select Year:
+                </label>
+                <select
+                  id="year-select"
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-transparent"
+                >
+                  {years.map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Chart */}
               <div className="h-64 flex items-end justify-between gap-2 mb-4">
-                {years.map((year) => {
-                  const data = chartData[year];
-                  const donationHeight = (data.donations / maxValue) * 100;
-                  const contributionHeight =
-                    (data.contributions / maxValue) * 100;
-                  const otherHeight = (data.other / maxValue) * 100;
-
-                  return (
+                {chartData[selectedYear] && (
+                  <div className="flex flex-col items-center flex-1">
                     <div
-                      key={year}
-                      className="flex flex-col items-center flex-1"
+                      className="flex flex-col-reverse items-center w-full"
+                      style={{ height: "200px" }}
                     >
-                      <div
-                        className="flex flex-col-reverse items-center w-full"
-                        style={{ height: "200px" }}
-                      >
-                        <div className="w-full flex gap-1 items-end">
-                          <div
-                            className="bg-gray-600 rounded-t transition-all duration-500 hover:bg-gray-700"
-                            style={{
-                              height: `${donationHeight}%`,
-                              width: "30%",
-                            }}
-                            title={`Donations: ${data.donations}m`}
-                          />
-                          <div
-                            className="bg-gray-500 rounded-t transition-all duration-500 hover:bg-gray-600"
-                            style={{
-                              height: `${contributionHeight}%`,
-                              width: "30%",
-                            }}
-                            title={`Contributions: ${data.contributions}m`}
-                          />
-                          <div
-                            className="bg-gray-800 rounded-t transition-all duration-500 hover:bg-gray-900"
-                            style={{ height: `${otherHeight}%`, width: "30%" }}
-                            title={`Other: ${data.other}m`}
-                          />
-                        </div>
+                      <div className="w-full flex gap-1 items-end">
+                        <div
+                          className="bg-gray-600 rounded-t transition-all duration-500 hover:bg-gray-700 cursor-pointer"
+                          style={{
+                            height: `${
+                              (chartData[selectedYear].donations / maxValue) *
+                              100
+                            }%`,
+                            width: "30%",
+                          }}
+                          title={`Donations: ${chartData[selectedYear].donations}m`}
+                        />
+                        <div
+                          className="bg-gray-500 rounded-t transition-all duration-500 hover:bg-gray-600 cursor-pointer"
+                          style={{
+                            height: `${
+                              (chartData[selectedYear].contributions /
+                                maxValue) *
+                              100
+                            }%`,
+                            width: "30%",
+                          }}
+                          title={`Contributions: ${chartData[selectedYear].contributions}m`}
+                        />
+                        <div
+                          className="bg-gray-800 rounded-t transition-all duration-500 hover:bg-gray-900 cursor-pointer"
+                          style={{
+                            height: `${
+                              (chartData[selectedYear].other / maxValue) * 100
+                            }%`,
+                            width: "30%",
+                          }}
+                          title={`Other: ${chartData[selectedYear].other}m`}
+                        />
                       </div>
-                      <div className="text-xs text-gray-500 mt-2">{year}</div>
                     </div>
-                  );
-                })}
+                    <div className="text-xs text-gray-500 mt-2">
+                      {selectedYear}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Y-axis labels */}
@@ -452,13 +703,23 @@ export default function TeacherDashboard() {
                 <span>NPRs60</span>
                 <span>NPRs80</span>
                 <span>NPRs100</span>
+                <span>NPRs120</span>
+                <span>NPRs140</span>
               </div>
 
               {/* Legend */}
               <div className="flex gap-4 text-xs mt-4">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-gray-600 rounded"></div>
-                  <span>Donations, contributions & other income</span>
+                  <span>Donations</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-gray-500 rounded"></div>
+                  <span>Contributions</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-gray-800 rounded"></div>
+                  <span>Other Income</span>
                 </div>
               </div>
             </div>
@@ -474,10 +735,10 @@ export default function TeacherDashboard() {
                 {contentData.map((item, index) => (
                   <div
                     key={index}
-                    className={`p-3 rounded-lg ${
+                    className={`p-3 rounded-lg transition-colors ${
                       item.status === "Published"
-                        ? "bg-gray-200"
-                        : "bg-gray-100"
+                        ? "bg-green-50 border border-green-200"
+                        : "bg-yellow-50 border border-yellow-200"
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -487,8 +748,8 @@ export default function TeacherDashboard() {
                       <span
                         className={`text-xs px-2 py-1 rounded ${
                           item.status === "Published"
-                            ? "bg-gray-300 text-gray-800"
-                            : "bg-gray-200 text-gray-700"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-yellow-100 text-yellow-800"
                         }`}
                       >
                         {item.status.toLowerCase()}
@@ -503,7 +764,7 @@ export default function TeacherDashboard() {
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

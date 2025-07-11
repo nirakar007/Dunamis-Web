@@ -8,7 +8,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-white border-t border-gray-200 py-12">
+    <footer className="bg-white border-t border-gray-200 py-28">
       <span className="flex justify-center text-gray-400 pb-10 text-sm">
         Teaching the Word • Reaching the Unreached
       </span>
@@ -74,7 +74,7 @@ const Footer = () => {
             </ul>
           </div>
           <div className="text-2xl font-bold text-gray-900">
-            Dunamis<span className="text-cyan-600">Online</span>
+            Dunamis<span className="text-custom-blue font-light">Online</span>
           </div>
         </div>
       </div>

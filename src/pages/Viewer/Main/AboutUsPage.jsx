@@ -43,17 +43,24 @@ const AboutUsPage = () => {
   const fadeOpacity = Math.max(0, 1 - scrollY / 800);
 
   return (
-    <div className="min-h-screen relative overflow-hidden mt-20">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Navbar spacer */}
+      <div className="h-20 w-full"></div>
+
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.5 }}
       >
-        {/* Parallax Mountain Background */}
+        {/* Parallax Mountain Background - Lower z-index */}
         <div
-          className="mt-24 fixed inset-0 bg-cover bg-center bg-no-repeat"
+          className="fixed bg-cover bg-center bg-no-repeat z-0"
           style={{
+            top: "80px",
+            left: "0",
+            right: "0",
+            bottom: "0",
             backgroundImage: `url('data:image/svg+xml;base64,${btoa(`
             <svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
               <defs>
@@ -113,18 +120,25 @@ const AboutUsPage = () => {
           }}
         />
 
-        {/* Overlay gradient for better text readability */}
+        {/* Overlay gradient for better text readability - Lower z-index */}
         <div
-          className="fixed inset-0 bg-gradient-to-b from-transparent via-white/10 to-white/60"
+          className="fixed bg-gradient-to-b from-transparent via-white/10 to-white/60 z-0"
           style={{
+            top: "80px",
+            left: "0",
+            right: "0",
+            bottom: "0",
             opacity: Math.min(1, scrollY / 400),
           }}
         />
 
-        {/* Content overlay */}
+        {/* Content overlay - Higher z-index than background */}
         <div className="relative z-10 bg-gradient-to-b from-transparent via-white/80 to-white">
-          {/* Animated background elements */}
-          <div className="fixed inset-0 pointer-events-none">
+          {/* Animated background elements - Lower z-index */}
+          <div
+            className="absolute inset-0 pointer-events-none z-0"
+            style={{ top: "80px" }}
+          >
             {[...Array(12)].map((_, i) => (
               <div
                 key={i}
@@ -143,7 +157,7 @@ const AboutUsPage = () => {
             ))}
           </div>
 
-          <div className="max-w-6xl mx-auto px-4 py-16 sm:px-6 relative z-10">
+          <div className="max-w-6xl mx-auto px-4 py-16 sm:px-6 relative z-20">
             {/* Hero Section */}
             <div
               className="text-center mb-20 relative"
@@ -151,7 +165,9 @@ const AboutUsPage = () => {
             >
               <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
                 <span className="inline-block relative">
-                  <span className="relative z-10 text-white">Welcome to Dunamis</span>
+                  <span className="relative z-10 text-white">
+                    Welcome to Dunamis
+                  </span>
                   <span
                     className="absolute inset-0 bg-gradient-to-r from-indigo-200 to-purple-200 opacity-30 rounded-full blur-lg"
                     style={{

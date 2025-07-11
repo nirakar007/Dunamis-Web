@@ -1,12 +1,14 @@
 import { motion } from "framer-motion";
-import { ChevronDown, X } from "lucide-react";
+import { Copy, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+// import { useNavigate, useSearchParams } from "react-router-dom"; // useNavigate and useSearchParams are commented out as they are not available in this environment
 
 const DonatePage = () => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate(); // This hook is not available in this environment
+  // const [searchParams] = useSearchParams(); // This hook is not available in this environment
+
   const [donationAmount, setDonationAmount] = useState("");
-  const [searchParams] = useSearchParams();
   const [customAmount, setCustomAmount] = useState("");
   const [donationPurpose, setDonationPurpose] = useState("General Fund");
   const [otherPurpose, setOtherPurpose] = useState("");
@@ -25,11 +27,14 @@ const DonatePage = () => {
   const [showQRCode, setShowQRCode] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [remainAnonymous, setRemainAnonymous] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // New state for submission loading
+  const [submitMessage, setSubmitMessage] = useState({ type: "", text: "" }); // New state for submission feedback
+  const navigate = useNavigate();
 
   const donationAmounts = [
-    { value: "Rs250", label: "Rs250" },
-    { value: "Rs500", label: "Rs500" },
-    { value: "Rs1500", label: "Rs1500" },
+    { value: "250", label: "Rs250" }, // Changed value to number for easier calculation
+    { value: "500", label: "Rs500" },
+    { value: "1500", label: "Rs1500" },
   ];
 
   const purposeOptions = ["General Fund", "Scholarship Program", "Other"];
@@ -38,26 +43,27 @@ const DonatePage = () => {
     {
       id: "fonepay",
       name: "FonePay",
+      // Reverted to original local image paths
       logo: "src/assets/images/fonepay.svg",
-      qr: "9861683302\nDunamis",
+      qrData: "FonePay:Dunamis:9861683302", // Data for QR code
     },
     {
       id: "khalti",
       name: "Khalti",
       logo: "src/assets/images/khalti.svg",
-      qr: "9861683302\nDunamis",
+      qrData: "Khalti:Dunamis:9861683302",
     },
     {
       id: "esewa",
       name: "eSewa",
       logo: "src/assets/images/esewa.svg",
-      qr: "9861683302\nDunamis",
+      qrData: "eSewa:Dunamis:9861683302",
     },
     {
       id: "bankpay",
       name: "Bank Pay",
       logo: "src/assets/images/bankpay.svg",
-      qr: "9861683302\nDunamis",
+      qrData: "BankPay:Dunamis:9861683302",
     },
   ];
 
@@ -65,7 +71,7 @@ const DonatePage = () => {
     if (donationAmount === "custom") {
       return customAmount;
     }
-    return donationAmount.replace("Rs", "");
+    return donationAmount;
   };
 
   const handlePersonalDetailsChange = (field, value) => {
@@ -78,58 +84,167 @@ const DonatePage = () => {
   const handlePaymentMethodSelect = (methodId) => {
     setSelectedPaymentMethod(methodId);
     setShowQRCode(true);
+    setSubmitMessage({ type: "", text: "" }); // Clear messages when selecting new method
+  };
+
+  // Function to generate a simple SVG that looks like a QR code
+  // This is a visual simulation, not a real QR code generator.
+  const generateSimpleQRCodeSVG = (data) => {
+    const size = 128; // SVG size
+    const moduleSize = size / 16; // Divide into a grid for pattern
+    let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">`;
+    svgContent += `<rect width="${size}" height="${size}" fill="white"/>`; // White background
+
+    // Simple pattern to resemble QR code modules
+    for (let i = 0; i < 16; i++) {
+      for (let j = 0; j < 16; j++) {
+        // Create a pseudo-random pattern based on index and data hash
+        const charIndex = (i * 16 + j) % data.length;
+        const charCode = data.charCodeAt(charIndex);
+        if ((charCode + i + j) % 3 === 0) {
+          // Simple hash to create a pattern
+          svgContent += `<rect x="${i * moduleSize}" y="${
+            j * moduleSize
+          }" width="${moduleSize}" height="${moduleSize}" fill="black"/>`;
+        }
+      }
+    }
+    // Add some text overlay for clarity, as it's not a scannable QR
+    svgContent += `<text x="50%" y="50%" font-family="Arial" font-size="10" fill="red" text-anchor="middle" dominant-baseline="middle">${data.substring(
+      0,
+      15
+    )}...</text>`;
+    svgContent += `</svg>`;
+    return `data:image/svg+xml;base64,${btoa(svgContent)}`;
+  };
+
+  const copyToClipboard = (text) => {
+    if (document.execCommand) {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand("copy");
+        setSubmitMessage({
+          type: "success",
+          text: "QR data copied to clipboard!",
+        });
+      } catch (err) {
+        setSubmitMessage({ type: "error", text: "Failed to copy QR data." });
+      }
+      document.body.removeChild(textarea);
+    } else {
+      setSubmitMessage({
+        type: "error",
+        text: "Clipboard API not supported in this browser.",
+      });
+    }
   };
 
   const handleSubmit = () => {
+    setSubmitMessage({ type: "", text: "" }); // Clear previous messages
+    setIsSubmitting(true);
+
     if (!agreeToTerms) {
-      alert("Please agree to the terms and conditions");
+      setSubmitMessage({
+        type: "error",
+        text: "Please agree to the terms and conditions.",
+      });
+      setIsSubmitting(false);
       return;
     }
 
-    const amount = getCurrentAmount();
-    if (!amount || amount <= 0) {
-      alert("Please enter a valid donation amount");
+    const amount = parseFloat(getCurrentAmount());
+    if (isNaN(amount) || amount <= 0) {
+      setSubmitMessage({
+        type: "error",
+        text: "Please enter a valid donation amount.",
+      });
+      setIsSubmitting(false);
       return;
     }
 
     if (!selectedPaymentMethod) {
-      alert("Please select a payment method");
+      setSubmitMessage({
+        type: "error",
+        text: "Please select a payment method.",
+      });
+      setIsSubmitting(false);
       return;
     }
 
-    alert(
-      `Thank you for your donation of Rs ${amount}! Please complete the payment using the QR code.`
-    );
-  };
+    // Validate personal details if not anonymous
+    if (!remainAnonymous) {
+      if (
+        !personalDetails.fullName ||
+        !personalDetails.email ||
+        !personalDetails.address ||
+        !personalDetails.city ||
+        !personalDetails.country
+      ) {
+        setSubmitMessage({
+          type: "error",
+          text: "Please fill in all required personal details or choose to remain anonymous.",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(personalDetails.email)) {
+        setSubmitMessage({
+          type: "error",
+          text: "Please enter a valid email address for personal details.",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+    }
 
-  const generateQRCode = (method) => {
-    // Simple QR code representation
-    return (
-      <div className="w-32 h-32 bg-white border-2 border-gray-300 flex items-center justify-center">
-        <div className="text-xs text-center">
-          <div
-            className="w-24 h-24 bg-black mb-2"
-            style={{
-              background: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='white'/%3E%3Crect x='10' y='10' width='80' height='80' fill='black'/%3E%3Crect x='20' y='20' width='60' height='60' fill='white'/%3E%3Crect x='30' y='30' width='40' height='40' fill='black'/%3E%3C/svg%3E")`,
-              backgroundSize: "cover",
-            }}
-          ></div>
-          <div className="text-xs font-medium">{method.qr}</div>
-        </div>
-      </div>
-    );
+    // Simulate API call for donation submission
+    setTimeout(() => {
+      setIsSubmitting(false);
+      // Simulate success or failure
+      if (Math.random() > 0.1) {
+        // 90% chance of success
+        setSubmitMessage({
+          type: "success",
+          text: `Donation of Rs ${amount} submitted! Please scan the QR code with your ${
+            paymentMethods.find((m) => m.id === selectedPaymentMethod)?.name
+          } app to complete the payment.`,
+        });
+        // Optionally clear form after successful submission and QR code display
+        // setDonationAmount("");
+        // setCustomAmount("");
+        // setPersonalDetails({ fullName: "", email: "", phone: "", address: "", city: "", state: "", postalCode: "", country: "" });
+        // setSelectedPaymentMethod("");
+        // setShowQRCode(true); // Ensure QR code remains visible after submission
+      } else {
+        setSubmitMessage({
+          type: "error",
+          text: "Donation failed. Please try again.",
+        });
+      }
+    }, 2000); // Simulate network delay
   };
 
   const handleBackButtonClick = (path) => {
     navigate(path);
+    // In a full React app with react-router-dom, this would navigate
+    // navigate(path);
+    console.log(`Navigating to: ${path} (simulated)`);
+    // For this isolated component, we'll simulate resetting the page state
+    // if it were part of a larger application's routing context.
+    // As this is a standalone component, it will just log.
   };
 
   useEffect(() => {
-    const amountFromUrl = searchParams.get("amount");
-    if (amountFromUrl) {
-      setDonationAmount(amountFromUrl);
-    }
-  }, [searchParams]);
+    // This effect would handle initial amount from URL if useSearchParams was active
+    // const amountFromUrl = searchParams.get("amount");
+    // if (amountFromUrl) {
+    //   setDonationAmount(amountFromUrl);
+    // }
+  }, []); // [searchParams]
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -146,21 +261,28 @@ const DonatePage = () => {
               onClick={() => {
                 handleBackButtonClick("/");
               }}
+              className="p-2 rounded-full hover:bg-gray-200 transition-colors"
             >
-              <img src="src\assets\images\back_btn.svg" alt="back-btn" />
+              {/* Reverted to original image path for back button */}
+              <img src="src/assets/images/back_btn.svg" alt="back-btn" />
             </button>
             <h1 className="text-2xl font-bold text-gray-900">Donation Form</h1>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {" "}
+            {/* Increased gap for better spacing */}
             {/* Left Column - Form */}
             <div className="lg:col-span-2 space-y-6 border-2 rounded-md">
+              {" "}
+              {/* Reverted to original border styling */}
               {/* I. Donation Details */}
               <div className="bg-white rounded-lg shadow p-6">
+                {" "}
+                {/* Reverted to original inner div styling */}
                 <h2 className="text-lg font-semibold mb-4">
                   I. Donation Details
                 </h2>
-
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Donation Amount
@@ -173,7 +295,10 @@ const DonatePage = () => {
                           name="donationAmount"
                           value={amount.value}
                           checked={donationAmount === amount.value}
-                          onChange={(e) => setDonationAmount(e.target.value)}
+                          onChange={(e) => {
+                            setDonationAmount(e.target.value);
+                            setCustomAmount(""); // Clear custom amount if a preset is selected
+                          }}
                           className="mr-2"
                         />
                         <span className="text-sm">{amount.label}</span>
@@ -197,72 +322,52 @@ const DonatePage = () => {
                       type="number"
                       placeholder="Custom Amount"
                       value={customAmount}
-                      onChange={(e) => setCustomAmount(e.target.value)}
+                      onChange={(e) => {
+                        setCustomAmount(e.target.value);
+                        setDonationAmount("custom"); // Ensure custom radio is selected
+                      }}
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-blue"
                     />
-                    <button className="px-4 py-2 bg-custom-blue text-white rounded-md hover:bg-blue-800">
+                    <button
+                      onClick={() => {
+                        if (customAmount && parseFloat(customAmount) > 0) {
+                          setDonationAmount("custom");
+                        } else {
+                          setCustomAmount(""); // Clear if invalid
+                        }
+                      }}
+                      className="px-4 py-2 bg-custom-blue text-white rounded-md hover:bg-blue-800"
+                    >
                       Done
                     </button>
                   </div>
                 </div>
-
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Donation Purpose
                   </label>
                   <div className="flex flex-wrap gap-4 mb-3">
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        name="purpose"
-                        value="General Fund"
-                        checked={donationPurpose === "General Fund"}
-                        onChange={(e) => setDonationPurpose(e.target.value)}
-                        className="mr-2"
-                      />
-                      <span className="text-sm">General Fund</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        name="purpose"
-                        value="Scholarship Program"
-                        checked={donationPurpose === "Scholarship Program"}
-                        onChange={(e) => setDonationPurpose(e.target.value)}
-                        className="mr-2"
-                      />
-                      <span className="text-sm">Scholarship Program</span>
-                    </label>
+                    {purposeOptions.map((option) => (
+                      <label key={option} className="flex items-center">
+                        <input
+                          type="radio"
+                          name="purpose"
+                          value={option}
+                          checked={donationPurpose === option}
+                          onChange={(e) => {
+                            setDonationPurpose(e.target.value);
+                            if (e.target.value !== "Other") {
+                              setOtherPurpose(""); // Clear other purpose if not 'Other'
+                            }
+                          }}
+                          className="mr-2"
+                        />
+                        <span className="text-sm">{option}</span>
+                      </label>
+                    ))}
                   </div>
 
-                  <div className="relative">
-                    <button
-                      onClick={() =>
-                        setShowPurposeDropdown(!showPurposeDropdown)
-                      }
-                      className="w-full px-3 py-2 text-left border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-blue flex items-center justify-between"
-                    >
-                      <span className="text-gray-500">Options</span>
-                      <ChevronDown className="w-4 h-4" />
-                    </button>
-                    {showPurposeDropdown && (
-                      <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-md shadow-lg z-10">
-                        {purposeOptions.map((option) => (
-                          <button
-                            key={option}
-                            onClick={() => {
-                              setDonationPurpose(option);
-                              setShowPurposeDropdown(false);
-                            }}
-                            className="w-full px-3 py-2 text-left hover:bg-gray-50"
-                          >
-                            {option}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
+                  {/* Removed the dropdown button and just show the 'Other' input if selected */}
                   {donationPurpose === "Other" && (
                     <input
                       type="text"
@@ -274,112 +379,132 @@ const DonatePage = () => {
                   )}
                 </div>
               </div>
-
               {/* II. Donor Information */}
               <div className="bg-white rounded-lg shadow p-6">
+                {" "}
+                {/* Reverted to original inner div styling */}
                 <h2 className="text-lg font-semibold mb-4">
                   II. Donor Information
                 </h2>
+                <label className="flex items-center mb-4">
+                  <input
+                    type="checkbox"
+                    checked={remainAnonymous}
+                    onChange={(e) => setRemainAnonymous(e.target.checked)}
+                    className="mr-2"
+                  />
+                  <span className="text-sm text-gray-700">
+                    I wish to remain anonymous
+                  </span>
+                </label>
+                {!remainAnonymous && (
+                  <>
+                    <h3 className="font-medium mb-3">Personal Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                      <input
+                        type="text"
+                        placeholder="Full Name"
+                        value={personalDetails.fullName}
+                        onChange={(e) =>
+                          handlePersonalDetailsChange(
+                            "fullName",
+                            e.target.value
+                          )
+                        }
+                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-blue"
+                      />
+                      <input
+                        type="email"
+                        placeholder="Email"
+                        value={personalDetails.email}
+                        onChange={(e) =>
+                          handlePersonalDetailsChange("email", e.target.value)
+                        }
+                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-blue"
+                      />
+                      <input
+                        type="tel"
+                        placeholder="Phone Number (Optional)"
+                        value={personalDetails.phone}
+                        onChange={(e) =>
+                          handlePersonalDetailsChange("phone", e.target.value)
+                        }
+                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-blue md:col-span-2"
+                      />
+                    </div>
 
-                <h3 className="font-medium mb-3">Personal Details</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  <input
-                    type="text"
-                    placeholder="Full Name"
-                    value={personalDetails.fullName}
-                    onChange={(e) =>
-                      handlePersonalDetailsChange("fullName", e.target.value)
-                    }
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-blue"
-                  />
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    value={personalDetails.email}
-                    onChange={(e) =>
-                      handlePersonalDetailsChange("email", e.target.value)
-                    }
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-blue"
-                  />
-                  <input
-                    type="tel"
-                    placeholder="Phone Number"
-                    value={personalDetails.phone}
-                    onChange={(e) =>
-                      handlePersonalDetailsChange("phone", e.target.value)
-                    }
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-blue md:col-span-2"
-                  />
-                </div>
-
-                <h3 className="font-medium mb-3">Address</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    placeholder="Street Address"
-                    value={personalDetails.address}
-                    onChange={(e) =>
-                      handlePersonalDetailsChange("address", e.target.value)
-                    }
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-blue md:col-span-2"
-                  />
-                  <input
-                    type="text"
-                    placeholder="City"
-                    value={personalDetails.city}
-                    onChange={(e) =>
-                      handlePersonalDetailsChange("city", e.target.value)
-                    }
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-blue"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Province/State"
-                    value={personalDetails.state}
-                    onChange={(e) =>
-                      handlePersonalDetailsChange("state", e.target.value)
-                    }
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-blue"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Postal Code"
-                    value={personalDetails.postalCode}
-                    onChange={(e) =>
-                      handlePersonalDetailsChange("postalCode", e.target.value)
-                    }
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-blue"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Country"
-                    value={personalDetails.country}
-                    onChange={(e) =>
-                      handlePersonalDetailsChange("country", e.target.value)
-                    }
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-blue"
-                  />
-                </div>
+                    <h3 className="font-medium mb-3">Address</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <input
+                        type="text"
+                        placeholder="Street Address"
+                        value={personalDetails.address}
+                        onChange={(e) =>
+                          handlePersonalDetailsChange("address", e.target.value)
+                        }
+                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-blue md:col-span-2"
+                      />
+                      <input
+                        type="text"
+                        placeholder="City"
+                        value={personalDetails.city}
+                        onChange={(e) =>
+                          handlePersonalDetailsChange("city", e.target.value)
+                        }
+                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-blue"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Province/State (Optional)"
+                        value={personalDetails.state}
+                        onChange={(e) =>
+                          handlePersonalDetailsChange("state", e.target.value)
+                        }
+                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-blue"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Postal Code (Optional)"
+                        value={personalDetails.postalCode}
+                        onChange={(e) =>
+                          handlePersonalDetailsChange(
+                            "postalCode",
+                            e.target.value
+                          )
+                        }
+                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-blue"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Country"
+                        value={personalDetails.country}
+                        onChange={(e) =>
+                          handlePersonalDetailsChange("country", e.target.value)
+                        }
+                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-blue"
+                      />
+                    </div>
+                  </>
+                )}
               </div>
-
               {/* III. Payment Information */}
               <div className="bg-white rounded-lg shadow p-6">
+                {" "}
+                {/* Reverted to original inner div styling */}
                 <h2 className="text-lg font-semibold mb-4">
                   III. Payment Information
                 </h2>
-
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Amount donated:
+                    Amount to be donated:
                   </label>
-                  <div className="px-3 py-2 bg-gray-100 border border-gray-300 rounded-md">
-                    Rs {getCurrentAmount() || "1500"}
+                  <div className="px-3 py-2 bg-gray-100 border border-gray-300 rounded-md font-semibold text-gray-800">
+                    Rs {getCurrentAmount() || "0"}
                   </div>
                 </div>
-
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Payment Method
+                    Select Payment Method
                   </label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {paymentMethods.map((method) => (
@@ -393,6 +518,7 @@ const DonatePage = () => {
                         }`}
                       >
                         <div className="w-12 h-12 mb-2 flex items-center justify-center">
+                          {/* Reverted to original image path for payment method logos */}
                           <img
                             src={method.logo}
                             alt={method.name}
@@ -400,12 +526,13 @@ const DonatePage = () => {
                             onError={(e) => {
                               // Fallback to text if image fails to load
                               e.target.style.display = "none";
-                              e.target.nextSibling.style.display = "block";
+                              if (e.target.nextSibling)
+                                e.target.nextSibling.style.display = "block";
                             }}
                           />
                           <div
-                            className="text-xs font-bold text-gray-600 hidden"
-                            style={{ display: "none" }}
+                            className="text-xs font-bold text-gray-600"
+                            style={{ display: "none" }} // Hidden by default, shown on error
                           >
                             {method.name}
                           </div>
@@ -415,10 +542,9 @@ const DonatePage = () => {
                     ))}
                   </div>
                 </div>
-
                 {/* QR Code Display */}
                 {showQRCode && selectedPaymentMethod && (
-                  <div className="mb-6 p-4 bg-cyan-50 border border-green-200 rounded-lg">
+                  <div className="mb-6 p-4 bg-cyan-50 border border-green-200 rounded-lg text-center">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="font-medium text-cyan-800">
                         Scan QR Code to Pay with{" "}
@@ -435,53 +561,53 @@ const DonatePage = () => {
                         <X className="w-5 h-5" />
                       </button>
                     </div>
-                    <div className="flex justify-center">
-                      {generateQRCode(
-                        paymentMethods.find(
-                          (m) => m.id === selectedPaymentMethod
-                        )
-                      )}
+                    <div className="flex flex-col items-center justify-center">
+                      {/* Display the simulated QR code */}
+                      <img
+                        src={generateSimpleQRCodeSVG(
+                          paymentMethods.find(
+                            (m) => m.id === selectedPaymentMethod
+                          )?.qrData
+                        )}
+                        alt="QR Code"
+                        className="w-32 h-32 border border-gray-300 mb-2"
+                      />
+                      <p className="text-sm text-gray-700 font-semibold mb-2">
+                        {
+                          paymentMethods.find(
+                            (m) => m.id === selectedPaymentMethod
+                          )?.qrData
+                        }
+                      </p>
+                      <button
+                        onClick={() =>
+                          copyToClipboard(
+                            paymentMethods.find(
+                              (m) => m.id === selectedPaymentMethod
+                            )?.qrData
+                          )
+                        }
+                        className="flex items-center text-custom-blue hover:text-blue-600 text-sm font-medium"
+                      >
+                        <Copy className="w-4 h-4 mr-1" /> Copy QR Data
+                      </button>
                     </div>
                   </div>
                 )}
-
-                {/* Payment Method Icons */}
-                <div className="flex justify-center space-x-8 pt-4 border-t border-gray-200">
-                  {paymentMethods.map((method) => (
-                    <div
-                      key={method.id}
-                      className="w-8 h-8 opacity-80 flex items-center justify-center"
-                    >
-                      <img
-                        src={method.logo}
-                        alt={method.name}
-                        className="max-w-full max-h-full object-contain"
-                        onError={(e) => {
-                          e.target.style.display = "none";
-                          e.target.nextSibling.style.display = "block";
-                        }}
-                      />
-                      <div
-                        className="text-xs font-bold text-gray-400 hidden"
-                        style={{ display: "none" }}
-                      >
-                        {method.name.charAt(0)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
               </div>
             </div>
-
             {/* Right Column - Terms */}
             <div className="lg:col-span-1 border-2 rounded-md">
+              {" "}
+              {/* Reverted to original border styling */}
               <div className="bg-white rounded-lg shadow p-6 sticky top-6">
+                {" "}
+                {/* Reverted to original inner div styling */}
                 <h2 className="text-lg font-semibold">Dunamis Donation</h2>
                 <h2 className="text-lg font-semibold mb-4 border-b-2 border-gray-300">
                   Terms & Conditions
                 </h2>
-
-                <div className="text-sm text-neutral-500 space-y-3 mb-6 max-h-96 overflow-y-auto">
+                <div className="text-sm text-neutral-500 space-y-3 mb-6 max-h-96 overflow-y-auto pr-2">
                   <p>
                     Thanks for supporting Dunamis! By donating, you agree to
                     these terms:
@@ -562,8 +688,7 @@ const DonatePage = () => {
                     terms.
                   </p>
                 </div>
-
-                <div className="space-y-3 mb-6">
+                <div className="space-y-3 mb-6 pt-4 border-t border-gray-200">
                   <label className="flex items-start">
                     <input
                       type="checkbox"
@@ -571,42 +696,95 @@ const DonatePage = () => {
                       onChange={(e) => setAgreeToTerms(e.target.checked)}
                       className="mt-1 mr-3"
                     />
-                    <span className="text-sm">
+                    <span className="text-sm text-gray-700">
                       I agree to the terms and conditions
                     </span>
                   </label>
-
-                  <label className="flex items-start">
-                    <input
-                      type="checkbox"
-                      checked={remainAnonymous}
-                      onChange={(e) => setRemainAnonymous(e.target.checked)}
-                      className="mt-1 mr-3"
-                    />
-                    <span className="text-sm">I wish to remain anonymous</span>
-                  </label>
                 </div>
-
                 <div className="flex justify-center mb-6">
                   <div className="text-6xl">🤝</div>
                 </div>
-
                 <div className="flex space-x-3">
                   <button
                     onClick={handleSubmit}
-                    disabled={!agreeToTerms}
-                    className={`flex-1 px-4 py-3 rounded-md font-medium transition-colors ${
-                      agreeToTerms
-                        ? "bg-custom-blue text-white hover:bg-green-600"
-                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    }`}
+                    disabled={!agreeToTerms || isSubmitting}
+                    className={`flex-1 px-4 py-3 rounded-md font-medium transition-colors flex items-center justify-center
+                      ${
+                        agreeToTerms && !isSubmitting
+                          ? "bg-custom-blue text-white hover:bg-green-600"
+                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      }`}
                   >
-                    Accept & DONATE
+                    {isSubmitting ? (
+                      <span className="flex items-center justify-center">
+                        <svg
+                          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Processing...
+                      </span>
+                    ) : (
+                      "Accept & DONATE"
+                    )}
                   </button>
-                  <button className="flex-1 bg-red-500 text-white px-4 py-3 rounded-md hover:bg-red-600 font-medium">
+                  <button
+                    onClick={() => {
+                      // Reset form or navigate back
+                      setDonationAmount("");
+                      setCustomAmount("");
+                      setDonationPurpose("General Fund");
+                      setOtherPurpose("");
+                      setPersonalDetails({
+                        fullName: "",
+                        email: "",
+                        phone: "",
+                        address: "",
+                        city: "",
+                        state: "",
+                        postalCode: "",
+                        country: "",
+                      });
+                      setSelectedPaymentMethod("");
+                      setShowQRCode(false);
+                      setAgreeToTerms(false);
+                      setRemainAnonymous(false);
+                      setSubmitMessage({ type: "", text: "" });
+                      // handleBackButtonClick("/"); // If navigation is enabled
+                    }}
+                    className="flex-1 bg-red-500 text-white px-4 py-3 rounded-md hover:bg-red-600 font-medium"
+                  >
                     Cancel
                   </button>
                 </div>
+                {submitMessage.text && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`mt-3 flex items-center text-sm ${
+                      submitMessage.type === "success"
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
+                  >
+                    {submitMessage.text}
+                  </motion.div>
+                )}
               </div>
             </div>
           </div>

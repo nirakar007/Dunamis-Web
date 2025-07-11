@@ -16,6 +16,7 @@ import { useState } from "react";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [feedbackMessage, setFeedbackMessage] = useState("");
 
   const dashboardStats = [
     { title: "Total Users", value: "156", color: "bg-gray-50 text-gray-700" },
@@ -36,7 +37,7 @@ export default function AdminDashboard() {
     },
   ];
 
-  const users = [
+  const [users, setUsers] = useState([
     {
       name: "John Smith",
       email: "john@example.com",
@@ -58,9 +59,9 @@ export default function AdminDashboard() {
       status: "Inactive",
       joinDate: "2024-01-20",
     },
-  ];
+  ]);
 
-  const content = [
+  const [content, setContent] = useState([
     {
       title: "Introduction to Mathematics",
       author: "John Smith",
@@ -82,9 +83,9 @@ export default function AdminDashboard() {
       status: "Pending",
       uploadDate: "2024-05-20",
     },
-  ];
+  ]);
 
-  const reviewQueue = [
+  const [reviewQueue, setReviewQueue] = useState([
     {
       title: "Science Fundamentals",
       author: "Mike Wilson",
@@ -99,9 +100,9 @@ export default function AdminDashboard() {
       type: "Document",
       uploadDate: "2024-05-18",
     },
-  ];
+  ]);
 
-  const donations = [
+  const [donations, setDonations] = useState([
     {
       donor: "Anonymous",
       amount: "$25",
@@ -120,7 +121,76 @@ export default function AdminDashboard() {
       date: "2024-05-18",
       content: "Science Fundamentals",
     },
-  ];
+  ]);
+
+  const showFeedback = (message) => {
+    setFeedbackMessage(message);
+    setTimeout(() => {
+      setFeedbackMessage("");
+    }, 3000); // Clear message after 3 seconds
+  };
+
+  // User Management Handlers
+  const handleAddUser = () => {
+    const newUser = {
+      name: "New User",
+      email: "newuser@example.com",
+      role: "Student",
+      status: "Active",
+      joinDate: new Date().toISOString().slice(0, 10),
+    };
+    setUsers([...users, newUser]);
+    showFeedback("New user added successfully!");
+  };
+
+  const handleDeleteUser = (email) => {
+    setUsers(users.filter((user) => user.email !== email));
+    showFeedback("User deleted successfully!");
+  };
+
+  const handleEditUser = (email) => {
+    showFeedback(`Edit user: ${email} (functionality not implemented)`);
+  };
+
+  // Content Management Handlers
+  const handleDeleteContent = (title) => {
+    setContent(content.filter((item) => item.title !== title));
+    showFeedback("Content deleted successfully!");
+  };
+
+  const handleViewContent = (title) => {
+    showFeedback(`Viewing content: ${title} (preview not available)`);
+  };
+
+  const handleEditContent = (title) => {
+    showFeedback(`Edit content: ${title} (functionality not implemented)`);
+  };
+
+  // Review Queue Handlers
+  const handleApproveReview = (title) => {
+    setReviewQueue(reviewQueue.filter((item) => item.title !== title));
+    const approvedContent = reviewQueue.find((item) => item.title === title);
+    if (approvedContent) {
+      // Optionally add to published content, for this example we just remove from review queue
+      setContent([...content, { ...approvedContent, status: "Published" }]);
+    }
+    showFeedback(`The content "${title}" has been approved.`);
+  };
+
+  const handleRequestChanges = (title) => {
+    setReviewQueue(reviewQueue.filter((item) => item.title !== title));
+    showFeedback(`Changes requested for "${title}".`);
+  };
+
+  const handleRejectReview = (title) => {
+    setReviewQueue(reviewQueue.filter((item) => item.title !== title));
+    showFeedback(`The content "${title}" has been rejected.`);
+  };
+
+  // Donation Management Handlers
+  const handleExportReport = () => {
+    showFeedback("Donation report exported successfully!");
+  };
 
   const NavButton = ({ icon: Icon, label, isActive, onClick }) => (
     <button
@@ -180,11 +250,18 @@ export default function AdminDashboard() {
 
   const renderDashboard = () => (
     <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 border-2">
-        {dashboardStats.map((stat, index) => (
-          <StatCard key={index} {...stat} />
-        ))}
-      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 border-2">
+          {dashboardStats.map((stat, index) => (
+            <StatCard key={index} {...stat} />
+          ))}
+        </div>
+      </motion.div>
     </div>
   );
 
@@ -196,9 +273,12 @@ export default function AdminDashboard() {
         exit={{ opacity: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold text-black">User Management</h2>
-          <button className="bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-gray-700 transition-colors">
+          <button
+            onClick={handleAddUser}
+            className="bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-gray-700 transition-colors"
+          >
             <Plus size={16} />
             <span>Add User</span>
           </button>
@@ -250,10 +330,13 @@ export default function AdminDashboard() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                     <div className="flex space-x-2">
-                      <ActionButton icon={Edit} onClick={() => {}} />
+                      <ActionButton
+                        icon={Edit}
+                        onClick={() => handleEditUser(user.email)}
+                      />
                       <ActionButton
                         icon={Trash2}
-                        onClick={() => {}}
+                        onClick={() => handleDeleteUser(user.email)}
                         variant="delete"
                       />
                     </div>
@@ -269,198 +352,243 @@ export default function AdminDashboard() {
 
   const renderContentManagement = () => (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-black">Content Management</h2>
-        <div className="flex space-x-4">
-          <select className="border border-gray-300 rounded-lg px-4 py-2 text-sm">
-            <option>All Categories</option>
-            <option>Mathematics</option>
-            <option>English</option>
-            <option>Science</option>
-          </select>
-          <select className="border border-gray-300 rounded-lg px-4 py-2 text-sm">
-            <option>All Status</option>
-            <option>Published</option>
-            <option>Pending</option>
-          </select>
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="flex justify-between items-cente mb-4">
+          <h2 className="text-2xl font-bold text-black">Content Management</h2>
+          <div className="flex space-x-4">
+            <select className="border border-gray-300 rounded-lg px-4 py-2 text-sm">
+              <option>All Categories</option>
+              <option>Mathematics</option>
+              <option>English</option>
+              <option>Science</option>
+            </select>
+            <select className="border border-gray-300 rounded-lg px-4 py-2 text-sm">
+              <option>All Status</option>
+              <option>Published</option>
+              <option>Pending</option>
+            </select>
+          </div>
         </div>
-      </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Title
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Author
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Category
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Upload Date
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {content.map((item, index) => (
-              <tr key={index} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-black">
-                  {item.title}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                  {item.author}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                  {item.category}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <StatusBadge status={item.status} />
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                  {item.uploadDate}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                  <div className="flex space-x-2">
-                    <ActionButton icon={Eye} onClick={() => {}} />
-                    <ActionButton icon={Edit} onClick={() => {}} />
-                    <ActionButton
-                      icon={Trash2}
-                      onClick={() => {}}
-                      variant="delete"
-                    />
-                  </div>
-                </td>
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Title
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Author
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Category
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Upload Date
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {content.map((item, index) => (
+                <tr key={index} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-black">
+                    {item.title}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    {item.author}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    {item.category}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <StatusBadge status={item.status} />
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    {item.uploadDate}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <div className="flex space-x-2">
+                      <ActionButton
+                        icon={Eye}
+                        onClick={() => handleViewContent(item.title)}
+                      />
+                      <ActionButton
+                        icon={Edit}
+                        onClick={() => handleEditContent(item.title)}
+                      />
+                      <ActionButton
+                        icon={Trash2}
+                        onClick={() => handleDeleteContent(item.title)}
+                        variant="delete"
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </motion.div>
     </div>
   );
 
   const renderReviewQueue = () => (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-black">Review Queue</h2>
-        <span className="text-gray-600">
-          {reviewQueue.length} items pending review
-        </span>
-      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold text-black">Review Queue</h2>
+          <span className="text-gray-600">
+            {reviewQueue.length} items pending review
+          </span>
+        </div>
 
-      <div className="space-y-6">
-        {reviewQueue.map((item, index) => (
-          <div
-            key={index}
-            className="bg-white rounded-lg border border-gray-200 p-6"
-          >
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h3 className="text-lg font-semibold text-black">
-                  {item.title}
-                </h3>
-                <p className="text-gray-600">
-                  by {item.author} • {item.category} • {item.type}
-                </p>
-                <p className="text-sm text-gray-500">
-                  Uploaded on {item.uploadDate}
-                </p>
-              </div>
-              <div className="flex space-x-3">
-                <button className="bg-teal-600 text-white px-4 py-2 rounded-md flex items-center space-x-2 hover:bg-teal-700 transition-colors">
-                  <Check size={16} />
-                  <span>Approve</span>
-                </button>
-                <button className="bg-yellow-600 text-white px-4 py-2 rounded-md flex items-center space-x-2 hover:bg-yellow-700 transition-colors">
-                  <Edit size={16} />
-                  <span>Request Changes</span>
-                </button>
-                <button className="bg-red-700 text-white px-4 py-2 rounded-md flex items-center space-x-2 hover:bg-red-800 transition-colors">
-                  <X size={16} />
-                  <span>Reject</span>
-                </button>
-              </div>
+        <div className="space-y-6">
+          {reviewQueue.length === 0 ? (
+            <div className="bg-white rounded-lg border border-gray-200 p-6 text-center text-gray-500">
+              No items in the review queue.
             </div>
-            <div className="bg-gray-50 rounded-lg p-4 text-gray-600 text-sm">
-              Content preview would appear here...
-            </div>
-          </div>
-        ))}
-      </div>
+          ) : (
+            reviewQueue.map((item, index) => (
+              <div
+                key={index}
+                className="bg-white rounded-lg border border-gray-200 p-6"
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-black">
+                      {item.title}
+                    </h3>
+                    <p className="text-gray-600">
+                      by {item.author} • {item.category} • {item.type}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Uploaded on {item.uploadDate}
+                    </p>
+                  </div>
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => handleApproveReview(item.title)}
+                      className="bg-teal-600 text-white px-4 py-2 rounded-md flex items-center space-x-2 hover:bg-teal-700 transition-colors"
+                    >
+                      <Check size={16} />
+                      <span>Approve</span>
+                    </button>
+                    <button
+                      onClick={() => handleRequestChanges(item.title)}
+                      className="bg-yellow-600 text-white px-4 py-2 rounded-md flex items-center space-x-2 hover:bg-yellow-700 transition-colors"
+                    >
+                      <Edit size={16} />
+                      <span>Request Changes</span>
+                    </button>
+                    <button
+                      onClick={() => handleRejectReview(item.title)}
+                      className="bg-red-700 text-white px-4 py-2 rounded-md flex items-center space-x-2 hover:bg-red-800 transition-colors"
+                    >
+                      <X size={16} />
+                      <span>Reject</span>
+                    </button>
+                  </div>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4 text-gray-600 text-sm">
+                  Content preview would appear here...
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </motion.div>
     </div>
   );
 
   const renderDonations = () => (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-black">Donation Management</h2>
-        <button className="bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-gray-700 transition-colors">
-          <Download size={16} />
-          <span>Export Report</span>
-        </button>
-      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold text-black">Donation Management</h2>
+          <button
+            onClick={handleExportReport}
+            className="bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-gray-700 transition-colors"
+          >
+            <Download size={16} />
+            <span>Export Report</span>
+          </button>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-gray-50 text-gray-700 p-6 rounded-lg">
-          <div className="text-3xl font-bold mb-2">$2,341</div>
-          <div className="text-sm font-medium">Total Donations</div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-gray-50 text-gray-700 p-6 rounded-lg">
+            <div className="text-3xl font-bold mb-2">$2,341</div>
+            <div className="text-sm font-medium">Total Donations</div>
+          </div>
+          <div className="bg-gray-50 text-gray-700 p-6 rounded-lg">
+            <div className="text-3xl font-bold mb-2">47</div>
+            <div className="text-sm font-medium">Total Donors</div>
+          </div>
+          <div className="bg-gray-50 text-gray-700 p-6 rounded-lg">
+            <div className="text-3xl font-bold mb-2">$49.81</div>
+            <div className="text-sm font-medium">Average Donation</div>
+          </div>
         </div>
-        <div className="bg-gray-50 text-gray-700 p-6 rounded-lg">
-          <div className="text-3xl font-bold mb-2">47</div>
-          <div className="text-sm font-medium">Total Donors</div>
-        </div>
-        <div className="bg-gray-50 text-gray-700 p-6 rounded-lg">
-          <div className="text-3xl font-bold mb-2">$49.81</div>
-          <div className="text-sm font-medium">Average Donation</div>
-        </div>
-      </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Donor
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Amount
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Date
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Content
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {donations.map((donation, index) => (
-              <tr key={index} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-black">
-                  {donation.donor}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">
-                  {donation.amount}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                  {donation.date}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                  {donation.content}
-                </td>
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Donor
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Amount
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Date
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Content
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {donations.map((donation, index) => (
+                <tr key={index} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-black">
+                    {donation.donor}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">
+                    {donation.amount}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    {donation.date}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    {donation.content}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </motion.div>
     </div>
   );
 
@@ -528,7 +656,20 @@ export default function AdminDashboard() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-8">{renderContent()}</div>
+        <div className="flex-1 p-8">
+          {feedbackMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="bg-cyan-50 bg-opacity-16 border border-blue-400 text-cyan-900 px-4 py-3 rounded relative mb-6"
+              role="alert"
+            >
+              <span className="block sm:inline">{feedbackMessage}</span>
+            </motion.div>
+          )}
+          {renderContent()}
+        </div>
       </div>
     </div>
   );
